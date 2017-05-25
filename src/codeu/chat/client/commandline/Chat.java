@@ -24,6 +24,8 @@ import codeu.chat.client.core.ConversationContext;
 import codeu.chat.client.core.MessageContext;
 import codeu.chat.client.core.UserContext;
 
+import codeu.chat.common.ServerInfo;
+
 public final class Chat {
 
   // PANELS
@@ -107,11 +109,30 @@ public final class Chat {
         System.out.println("    Add a new user with the given name.");
         System.out.println("  u-sign-in <name>");
         System.out.println("    Sign in as the user with the given name.");
+        System.out.println("  info");
+        System.out.println("    Get some information from server.");
         System.out.println("  exit");
-        System.out.println("    Exit the program.");
+        System.out.println("    Exit the program.");       
       }
     });
-
+    // info (Server info)
+    //
+    // Get some infomation from server
+    //
+    panel.register("info", new Panel.Command() {
+        @Override
+        public void invoke(Scanner args) {
+          final ServerInfo info = context.getInfo();
+          if (info == null) {
+            // Communicate error to user - the server did not send us a valid
+            // info object.
+            System.out.println("Something went wrong when I got server info");
+          } else {
+            //Print server info
+            System.out.println("Version:" + info.version);
+          }
+        }
+    });
     // U-LIST (user list)
     //
     // Add a command to print all users registered on the server when the user

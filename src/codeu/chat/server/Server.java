@@ -33,6 +33,7 @@ import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
 import codeu.chat.common.User;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
@@ -41,10 +42,11 @@ import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
 
 public final class Server {
-
   private interface Command {
     void onMessage(InputStream in, OutputStream out) throws IOException;
   }
+
+  private static final ServerInfo info = new ServerInfo();
 
   private static final Logger.Log LOG = Logger.newLog(Server.class);
 
@@ -169,6 +171,16 @@ public final class Server {
 
         Serializers.INTEGER.write(out, NetworkCode.GET_MESSAGES_BY_ID_RESPONSE);
         Serializers.collection(Message.SERIALIZER).write(out, messages);
+      }
+    });
+    //Get Server info
+    this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command()
+    {
+      @Override
+      public void onMessage(InputStream in,OutputStream out) throws IOException
+      {
+        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
+        Uuid.SERIALIZER.write(out, info.version);
       }
     });
 

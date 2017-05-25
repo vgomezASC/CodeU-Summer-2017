@@ -23,6 +23,7 @@ import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.User;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
@@ -136,4 +137,20 @@ final class View implements BasicView {
 
     return messages;
   }
+  public ServerInfo getInfo() {
+    try (final Connection connection = this.source.connect()) {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.SERVER_INFO_REQUEST);
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.SERVER_INFO_RESPONSE) {
+        final Uuid version = Uuid.SERIALIZER.read(connection.in());
+        return new ServerInfo(version);
+      } else {
+        // Communicate this error - the server did not respond with the type of
+        // response we expected.
+      }
+    } catch (Exception ex) {
+      // Communicate this error - something went wrong with the connection.
+    }
+    // If we get here it means something went wrong and null should be returned
+    return null;
+}
 }
