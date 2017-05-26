@@ -156,7 +156,7 @@ final class View implements BasicView {
     } catch (Exception ex) {
       // Communicate this error - something went wrong with the connection.
       System.out.print("Another unexpected Bug destroyed this perfect software");
-      System.out.print(", please tell Yuhang Liao something unexpectedly wrong happned in Line 140 in View.java");
+      System.out.println(", please tell Yuhang Liao something unexpectedly wrong happned in Line 140 in View.java");
     }
     // If we get here it means something went wrong and null should be returned
     return null;
