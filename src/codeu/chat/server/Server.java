@@ -173,7 +173,7 @@ public final class Server {
         Serializers.collection(Message.SERIALIZER).write(out, messages);
       }
     });
-    //Get Server info
+    //Get the version from server
     this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command()
     {
       @Override

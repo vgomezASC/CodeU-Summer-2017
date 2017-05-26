@@ -48,7 +48,18 @@ public final class Context {
     }
     return users;
   }
+  /**
+   * @return The infomation of the server. If fails, null will be returned.
+   */
   public ServerInfo getInfo() {
+    if(view instanceof View)
+    {
       return ((View)view).getInfo();
+    }
+    else
+    {
+      System.out.println("I cannot parse the info in the Line 54 in Context.java.");
+      return null;
+    }
   }
 }

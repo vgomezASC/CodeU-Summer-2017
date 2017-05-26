@@ -137,6 +137,9 @@ final class View implements BasicView {
 
     return messages;
   }
+  /**
+   * @return The infomation of the server. If fails, null will be returned. 
+   */
   public ServerInfo getInfo() {
     try (final Connection connection = this.source.connect()) {
       Serializers.INTEGER.write(connection.out(), NetworkCode.SERVER_INFO_REQUEST);
@@ -146,9 +149,14 @@ final class View implements BasicView {
       } else {
         // Communicate this error - the server did not respond with the type of
         // response we expected.
+        System.out.println("The server did not respond with the type of response we expected.");
+        System.out.println("You can leave this error to Yuhang Liao to fix that.");
+        System.out.println("Don't forget to tell him it happened in Line 143 in View.java.");
       }
     } catch (Exception ex) {
       // Communicate this error - something went wrong with the connection.
+      System.out.print("Another unexpected Bug destroyed this perfect software");
+      System.out.print(", please tell Yuhang Liao something unexpectedly wrong happned in Line 140 in View.java");
     }
     // If we get here it means something went wrong and null should be returned
     return null;
