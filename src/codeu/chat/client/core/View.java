@@ -150,14 +150,11 @@ final class View implements BasicView {
       } else {
         // Communicate this error - the server did not respond with the type of
         // response we expected.
-        System.out.println("The server did not respond with the type of response we expected.");
-        System.out.println("You can leave this error to Yuhang Liao to fix that.");
-        System.out.println("Don't forget to tell him it happened in Line 143 in View.java.");
+        System.out.println("Error: The server did not respond with the type of response we expected. Line 146-149, View.java.");
       }
     } catch (Exception ex) {
       // Communicate this error - something went wrong with the connection.
-      System.out.print("Another unexpected Bug destroyed this perfect software");
-      System.out.println(", please tell Yuhang Liao something unexpectedly wrong happned in Line 140 in View.java");
+      System.out.println("Fatal error: Unexpected error occurs. Line 146-149, View.java" + ex.getMessage());
     }
     // If we get here it means something went wrong and null should be returned
     return null;

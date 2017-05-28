@@ -1,6 +1,11 @@
 
 # CODEU CHAT SERVER | README
 
+##Update from Yuhang Liao
+
+1. Version Check feature is added. Type "info" to get current version information.
+
+2. Modify some error messages.
 
 ## DISCLAIMER
 

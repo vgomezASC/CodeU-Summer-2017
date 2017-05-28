@@ -126,8 +126,7 @@ public final class Chat {
           if (info == null) {
             // Communicate error to user - the server did not send us a valid
             // info object.
-            System.out.println("I can't get the ServerInfo, because the server didn't send a valid info, or you lost connection. Please check your connection and try again.");
-            System.out.println("If you are still confused, please tell Yuhang Liao that something wrong in the Line 130 in Chat.java");
+            System.out.println("Error: ServerInfo cannot be read. Line 125, Chat.java");
           } else {
             //Print server info
             System.out.println("Version:" + info.version);

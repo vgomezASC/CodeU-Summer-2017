@@ -8,17 +8,15 @@ public final class ServerInfo {
 
   public final Uuid version;
   public ServerInfo(){
-      Uuid temp;
+      Uuid temp = null;
       try {
         temp = Uuid.parse(SERVER_VERSION);
-        this.version = temp;
       } catch (IOException e) {
-          System.out.println("There is a fatal error when I parse version data, please contact Yuhang Liao to fix that!");
-
-          System.out.println("Also don't forget tell the careless Yuhang Liao this exception happed in Line 15 in ServerInfo.java'");
-
-          System.out.println("All server info will be null this time.");
-          this.version = null;
+          System.out.println("Fatal Error: Cannot parse the server infomation. Line 13, ServerInfo.java");
+      }
+      finally
+      {
+        this.version = temp;
       }
   }
 
