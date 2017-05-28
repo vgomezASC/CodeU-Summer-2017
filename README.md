@@ -1,7 +1,7 @@
 
 # CODEU CHAT SERVER | README
 
-##Update from Yuhang Liao
+## UPDATE FROM YUHANG LIAO
 
 1. Version Check feature is added. Type "info" to get current version information.
 
