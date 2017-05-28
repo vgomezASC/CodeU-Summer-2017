@@ -137,3 +137,20 @@ final class View implements BasicView {
     return messages;
   }
 }
+
+  public ServerInfo getInfo() {
+    try (final Connection connection = source.connection()) {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.SERVER_INFO_REQUEST);
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.SERVER_INFO_RESPONSE) {
+        final Time startTime = Time.SERIALIZER.read(connection.in());
+        return new ServerInfo(startTime);
+      } else {
+        // Communicate this error - the server did not respond with the type of
+        // response we expected.
+      }
+    } catch (Exception ex) {
+      // Communicate this error - something went wrong with the connection.
+    }
+    // If we get here it means something went wrong and null should be returned
+    return null;
+  }

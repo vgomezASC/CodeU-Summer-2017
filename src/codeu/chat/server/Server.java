@@ -89,9 +89,13 @@ public final class Server {
             author,
             conversation,
             message.id));
+     if (type == NetworkCode.SERVER_INFO_REQUEST) {
+        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
+        Uuid.SERIALIZER.write(out, info.version);
+         } else if …
       }
     });
-
+      
     // New User - A client wants to add a new user to the back end.
     this.commands.put(NetworkCode.NEW_USER_REQUEST,  new Command() {
       @Override
@@ -102,6 +106,10 @@ public final class Server {
 
         Serializers.INTEGER.write(out, NetworkCode.NEW_USER_RESPONSE);
         Serializers.nullable(User.SERIALIZER).write(out, user);
+      if (type == NetworkCode.SERVER_INFO_REQUEST) {
+        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
+        Uuid.SERIALIZER.write(out, info.version);
+         } else if …
       }
     });
 
@@ -116,6 +124,10 @@ public final class Server {
 
         Serializers.INTEGER.write(out, NetworkCode.NEW_CONVERSATION_RESPONSE);
         Serializers.nullable(ConversationHeader.SERIALIZER).write(out, conversation);
+      if (type == NetworkCode.SERVER_INFO_REQUEST) {
+        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
+        Uuid.SERIALIZER.write(out, info.version);
+         } else if …
       }
     });
 
@@ -128,6 +140,10 @@ public final class Server {
 
         Serializers.INTEGER.write(out, NetworkCode.GET_USERS_RESPONSE);
         Serializers.collection(User.SERIALIZER).write(out, users);
+      if (type == NetworkCode.SERVER_INFO_REQUEST) {
+        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
+        Uuid.SERIALIZER.write(out, info.version);
+         } else if …
       }
     });
 
@@ -140,6 +156,10 @@ public final class Server {
 
         Serializers.INTEGER.write(out, NetworkCode.GET_ALL_CONVERSATIONS_RESPONSE);
         Serializers.collection(ConversationHeader.SERIALIZER).write(out, conversations);
+      if (type == NetworkCode.SERVER_INFO_REQUEST) {
+        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
+        Uuid.SERIALIZER.write(out, info.version);
+         } else if …
       }
     });
 
@@ -156,6 +176,10 @@ public final class Server {
 
         Serializers.INTEGER.write(out, NetworkCode.GET_CONVERSATIONS_BY_ID_RESPONSE);
         Serializers.collection(ConversationPayload.SERIALIZER).write(out, conversations);
+      if (type == NetworkCode.SERVER_INFO_REQUEST) {
+        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
+        Uuid.SERIALIZER.write(out, info.version);
+         } else if …
       }
     });
 
@@ -169,6 +193,10 @@ public final class Server {
 
         Serializers.INTEGER.write(out, NetworkCode.GET_MESSAGES_BY_ID_RESPONSE);
         Serializers.collection(Message.SERIALIZER).write(out, messages);
+      if (type == NetworkCode.SERVER_INFO_REQUEST) {
+        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
+        Uuid.SERIALIZER.write(out, info.version);
+         } else if …
       }
     });
 
@@ -280,6 +308,7 @@ public final class Server {
                     relay.pack(user.id, user.name, user.creation),
                     relay.pack(conversation.id, conversation.title, conversation.creation),
                     relay.pack(message.id, message.content, message.creation));
+  private static final ServerInfo info = new ServerInfo();
       }
     };
   }
