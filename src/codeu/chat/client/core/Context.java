@@ -49,6 +49,7 @@ public final class Context {
     return users;
   }
   /**
+   * Get the info of the server; version info should be returned currently.
    * @return The infomation of the server. If fails, null will be returned.
    */
   public ServerInfo getInfo() {

@@ -110,14 +110,14 @@ public final class Chat {
         System.out.println("  u-sign-in <name>");
         System.out.println("    Sign in as the user with the given name.");
         System.out.println("  info");
-        System.out.println("    Get some information from server.");
+        System.out.println("    Get some information from server; it should be version info currently.");
         System.out.println("  exit");
         System.out.println("    Exit the program.");       
       }
     });
     // info (Server info)
     //
-    // Get some infomation from server
+    // Get some infomation from server; it should be version info currently
     //
     panel.register("info", new Panel.Command() {
         @Override
@@ -126,7 +126,7 @@ public final class Chat {
           if (info == null) {
             // Communicate error to user - the server did not send us a valid
             // info object.
-            System.out.println("I can't get the ServerInfo, because the server did't send a valid info, or you lost connection. Please check your connection and try again.");
+            System.out.println("I can't get the ServerInfo, because the server didn't send a valid info, or you lost connection. Please check your connection and try again.");
             System.out.println("If you are still confused, please tell Yuhang Liao that something wrong in the Line 130 in Chat.java");
           } else {
             //Print server info

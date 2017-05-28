@@ -138,7 +138,8 @@ final class View implements BasicView {
     return messages;
   }
   /**
-   * @return The infomation of the server. If fails, null will be returned. 
+   * Get the info of the server; version info should be returned currently.
+   * @return The infomation of the server. If fails, null will be returned.
    */
   public ServerInfo getInfo() {
     try (final Connection connection = this.source.connect()) {
