@@ -58,8 +58,7 @@ public final class Chat {
         args.add(token);
       }
     } catch (IOException e){ 
-      System.out.println("ERROR! IOException caught.");
-      e.printStackTrace();
+      System.out.println("ERROR! IOException caught in Chat.handleCommand().");
     }
     final String command = args.get(0);    
     args.remove(0);
