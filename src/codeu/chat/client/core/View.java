@@ -145,11 +145,10 @@ final class View implements BasicView {
         final Time startTime = Time.SERIALIZER.read(connection.in());
         return new ServerInfo(startTime);
       } else {
-        // Communicate this error - the server did not respond with the type of
-        // response we expected.
+        System.out.println("The server did not respond with the type of response we expected")
       }
     } catch (Exception ex) {
-      // Communicate this error - something went wrong with the connection.
+      System.out.println("Something went wrong with the connection")
     }
     // If we get here it means something went wrong and null should be returned
     return null;
