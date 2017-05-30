@@ -12,7 +12,7 @@ public final class ServerInfo {
       try {
         temp = Uuid.parse(SERVER_VERSION);
       } catch (IOException e) {
-          System.out.println("Fatal Error: Cannot parse the server infomation. Line 13, ServerInfo.java");
+          e.printStackTrace("Fatal Error: Cannot parse the server infomation. All variables in this instance will be null this time.");
       }
       finally
       {

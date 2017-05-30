@@ -1,12 +1,6 @@
 
 # CODEU CHAT SERVER | README
 
-## UPDATE FROM YUHANG LIAO
-
-1. Version Check feature is added. Type "info" to get current version information.
-
-2. Modify some error messages.
-
 ## DISCLAIMER
 
 CODEU is a program created by Google to develop the skills of future software

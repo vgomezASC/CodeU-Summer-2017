@@ -26,7 +26,7 @@ import codeu.chat.util.connections.ConnectionSource;
 
 public final class Context {
 
-  private final BasicView view;
+  private final View view;
   private final Controller controller;
 
   public Context(ConnectionSource source) {
@@ -53,14 +53,6 @@ public final class Context {
    * @return The infomation of the server. If fails, null will be returned.
    */
   public ServerInfo getInfo() {
-    if(view instanceof View)
-    {
-      return ((View)view).getInfo();
-    }
-    else
-    {
-      System.out.println("Fatal Error: The info cannot be parsed.Line 58, Context.java");
-      return null;
-    }
+      return view.getInfo();
   }
 }

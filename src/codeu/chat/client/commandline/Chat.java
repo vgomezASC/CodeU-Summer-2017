@@ -14,6 +14,7 @@
 
 package codeu.chat.client.commandline;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -126,7 +127,7 @@ public final class Chat {
           if (info == null) {
             // Communicate error to user - the server did not send us a valid
             // info object.
-            System.out.println("Error: ServerInfo cannot be read. Line 125, Chat.java");
+            new IOException().printStackTrace("ERROR: ServerInfo cannot be read.");
           } else {
             //Print server info
             System.out.println("Version:" + info.version);
