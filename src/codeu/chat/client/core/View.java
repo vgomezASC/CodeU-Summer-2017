@@ -152,11 +152,11 @@ final class View implements BasicView {
       } else {
         // Communicate this error - the server did not respond with the type of
         // response we expected.
-        new IOException().printStackTrace("ERROR: The server did not respond with the type of response we expected.");
+        new IOException("ERROR: The server did not respond with the type of response we expected.").printStackTrace();
       }
     } catch (Exception ex) {
       // Communicate this error - something went wrong with the connection.
-      new UnexpectedException().printStackTrace("FATAL ERROR: Unexpected error occurs.");
+      new UnexpectedException("FATAL ERROR: Unexpected error occurs, something went wrong while client was trying to connect to server.").printStackTrace();
     }
     // If we get here it means something went wrong and null should be returned
     return null;
