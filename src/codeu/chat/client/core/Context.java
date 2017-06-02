@@ -20,6 +20,7 @@ import java.util.Collection;
 
 import codeu.chat.common.BasicView;
 import codeu.chat.common.User;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.ConnectionSource;
 
@@ -46,5 +47,19 @@ public final class Context {
       users.add(new UserContext(user, view, controller));
     }
     return users;
+  }
+  /**
+   * @return The infomation of the server. If fails, null will be returned.
+   */
+  public ServerInfo getInfo() {
+    if(view instanceof View)
+    {
+      return ((View)view).getInfo();
+    }
+    else
+    {
+      System.out.println("I cannot parse the info in the Line 54 in Context.java.");
+      return null;
+    }
   }
 }

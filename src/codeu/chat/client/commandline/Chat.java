@@ -28,6 +28,8 @@ import codeu.chat.client.core.MessageContext;
 import codeu.chat.client.core.UserContext;
 import codeu.chat.util.Tokenizer;
 
+import codeu.chat.common.ServerInfo;
+
 public final class Chat {
 
   // PANELS
@@ -120,11 +122,31 @@ public final class Chat {
         System.out.println("    Add a new user with the given name.");
         System.out.println("  u-sign-in <name>");
         System.out.println("    Sign in as the user with the given name.");
+        System.out.println("  info");
+        System.out.println("    Get some information from server.");
         System.out.println("  exit");
-        System.out.println("    Exit the program.");
+        System.out.println("    Exit the program.");       
       }
     });
-
+    // info (Server info)
+    //
+    // Get some infomation from server
+    //
+    panel.register("info", new Panel.Command() {
+        @Override
+        public void invoke(Scanner args) {
+          final ServerInfo info = context.getInfo();
+          if (info == null) {
+            // Communicate error to user - the server did not send us a valid
+            // info object.
+            System.out.println("I can't get the ServerInfo, because the server did't send a valid info, or you lost connection. Please check your connection and try again.");
+            System.out.println("If you are still confused, please tell Yuhang Liao that something wrong in the Line 130 in Chat.java");
+          } else {
+            //Print server info
+            System.out.println("Version:" + info.version);
+          }
+        }
+    });
     // U-LIST (user list)
     //
     // Add a command to print all users registered on the server when the user
