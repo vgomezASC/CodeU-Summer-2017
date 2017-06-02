@@ -1,6 +1,11 @@
 
 # CODEU CHAT SERVER | README
 
+##Update from Yuhang Liao
+
+1. Version Check feature is added. Type "info" to get current version information.
+
+2. Modify some error messages.
 
 ## DISCLAIMER
 
@@ -34,7 +39,7 @@ JAVA&nbsp;7 when working with this project.
 
   1. To test the project:
        ```
-       $ python build.py run codeu.chat.TestRunner
+       $ python build.py codeu.chat.TestRunner
        ```
 
   1. To run the project you will need to run both the client and the server. Run
@@ -42,7 +47,7 @@ JAVA&nbsp;7 when working with this project.
 
        ```
        $ python build.py run codeu.chat.ServerMain <team_id> <team_secret> <port> <persistent-dir>
-       $ python build.py run codeu.chat.ClientMain "<host>@<port>"
+       $ python build.py run codeu.chat.Clientmain "<host>@<port>"
        ```
 
      You must provide the following startup arguments to `ServerMain`:
