@@ -113,7 +113,7 @@ public final class Chat {
         System.out.println("  u-sign-in <name>");
         System.out.println("    Sign in as the user with the given name.");
         System.out.println("  info");
-        System.out.println("    Get some information from server; it should be version info currently.");
+        System.out.println("    Get session information.");
         System.out.println("  exit");
         System.out.println("    Exit the program.");       
       }
