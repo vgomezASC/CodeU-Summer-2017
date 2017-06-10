@@ -18,10 +18,13 @@ import java.lang.StringBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.Objects;
 
-public final class Uuid {
+public final class Uuid implements Serializable {
 
+  private static final long serialVersionUID = 1L;
+  
   public static final Uuid NULL = new Uuid(0);
 
   public static final Serializer<Uuid> SERIALIZER = new Serializer<Uuid>() {

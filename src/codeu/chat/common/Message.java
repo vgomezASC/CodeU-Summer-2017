@@ -17,14 +17,16 @@ package codeu.chat.common;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 
 import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 
-public final class Message {
+public final class Message implements Serializable{
 
+  private static final long serialVersionUID = 1L;
   public static final Serializer<Message> SERIALIZER = new Serializer<Message>() {
 
     @Override
@@ -60,6 +62,7 @@ public final class Message {
   public final Uuid author;
   public final String content;
   public Uuid next;
+  public Uuid conversation;
 
   public Message(Uuid id, Uuid next, Uuid previous, Time creation, Uuid author, String content) {
 
@@ -70,5 +73,16 @@ public final class Message {
     this.author = author;
     this.content = content;
 
+  }
+
+  public Message(Uuid id, Uuid next, Uuid previous, Time creation, Uuid author, String content,Uuid conversation) {
+
+    this.id = id;
+    this.next = next;
+    this.previous = previous;
+    this.creation = creation;
+    this.author = author;
+    this.content = content;
+    this.conversation = conversation;
   }
 }
