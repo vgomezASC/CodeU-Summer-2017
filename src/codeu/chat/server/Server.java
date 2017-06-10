@@ -69,14 +69,15 @@ public final class Server {
   private final Relay relay;
   private Uuid lastSeen = Uuid.NULL;
 
-  private final File file = new File("./dat.sav");
+  private final File file;
   private final Storage storage;
 
-  public Server(final Uuid id, final Secret secret, final Relay relay) {
+  public Server(final Uuid id, final Secret secret, final Relay relay,final File localFilePath) {
 
     this.id = id;
     this.secret = secret;
-    this.storage = new Storage(file);
+    this.file = localFilePath;
+    this.storage = new Storage(new File(file.getPath() + "/dat.sav"));
     this.controller = new Controller(id, model,storage);
     this.relay = relay;
 
