@@ -1,4 +1,4 @@
-package codeu.chat.storage;
+package codeu.chat.server;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,7 +15,7 @@ import codeu.chat.common.Message;
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 
-public class Storage implements Serializable
+public class LocalFile implements Serializable
 {
     private static final long serialVersionUID = 1L;
 
@@ -25,11 +25,11 @@ public class Storage implements Serializable
 
     private final File file;
 
-    private static final Logger.Log LOG = Logger.newLog(Storage.class);
-    public Storage(File file)
+    private static final Logger.Log LOG = Logger.newLog(LocalFile.class);
+    public LocalFile(File file)
     {
         this.file = file;
-        Storage newClass;
+        LocalFile newClass;
         ArrayList<User>tempUsers = new ArrayList<>();
         ArrayList<ConversationHeader>tempConversationHeaders= new ArrayList<>();
         ArrayList<Message>tempMessages= new ArrayList<>();
@@ -38,7 +38,7 @@ public class Storage implements Serializable
             FileInputStream fileInputStream = new FileInputStream(file);
 		    ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
 
-		    newClass = (Storage)objectInputStream.readObject();
+		    newClass = (LocalFile)objectInputStream.readObject();
             tempUsers = newClass.getCopyOfUsers();
             tempConversationHeaders = newClass.getCopyOfConversationHeaders();
             tempMessages = newClass.getCopyOfMessages();
@@ -59,7 +59,7 @@ public class Storage implements Serializable
         }
     }
 
-    public void store() throws IOException
+    public void saveData() throws IOException
     {
         if(!file.exists())
         {

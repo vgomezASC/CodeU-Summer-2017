@@ -34,7 +34,7 @@ import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
 import codeu.chat.common.User;
-import codeu.chat.storage.Storage;
+import codeu.chat.server.LocalFile;
 import codeu.chat.common.ServerInfo;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
@@ -70,15 +70,15 @@ public final class Server {
   private Uuid lastSeen = Uuid.NULL;
 
   private final File file;
-  private final Storage storage;
+  private final LocalFile localFile;
 
   public Server(final Uuid id, final Secret secret, final Relay relay,final File localFilePath) {
 
     this.id = id;
     this.secret = secret;
     this.file = localFilePath;
-    this.storage = new Storage(new File(file.getPath() + "/dat.sav"));
-    this.controller = new Controller(id, model,storage);
+    this.localFile = new LocalFile(new File(file.getPath() + "/dat.sav"));
+    this.controller = new Controller(id, model,localFile);
     this.relay = relay;
 
     // New Message - A client wants to add a new message to the back end.
@@ -213,13 +213,14 @@ public final class Server {
         timeline.scheduleIn(RELAY_REFRESH_MS, this);
       }
     });
+    //Save the data periodically
     this.timeline.scheduleNow(new Runnable() {
       @Override
       public void run() 
       {
         try
         {
-          storage.store();
+          localFile.saveData();
           timeline.scheduleIn(LOCAL_FILE_REFRESH_MS, this);
         }
         catch(IOException exception)

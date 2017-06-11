@@ -23,7 +23,7 @@ import codeu.chat.common.Message;
 import codeu.chat.common.RandomUuidGenerator;
 import codeu.chat.common.RawController;
 import codeu.chat.common.User;
-import codeu.chat.storage.Storage;
+import codeu.chat.server.LocalFile;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
@@ -35,28 +35,28 @@ public final class Controller implements RawController, BasicController {
   private final Model model;
   private final Uuid.Generator uuidGenerator;
 
-  private final Storage storage;
+  private final LocalFile localFile;
 
   public Controller(Uuid serverId, Model model) {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
-    this.storage = null;
+    this.localFile = null;
   }
-  public Controller(Uuid serverId, Model model,Storage storage) {
+  public Controller(Uuid serverId, Model model,LocalFile localFile) {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
-    this.storage = storage;
-    for (User item : storage.getCopyOfUsers())
+    this.localFile = localFile;
+    for (User item : localFile.getCopyOfUsers())
     {
       this.newUser(item.id, item.name, item.creation);
     }
 
-    for (ConversationHeader item : storage.getCopyOfConversationHeaders())
+    for (ConversationHeader item : localFile.getCopyOfConversationHeaders())
     {
       this.newConversation(item.id, item.title, item.owner, item.creation);
     }
 
-    for(Message item :storage.getCopyOfMessages())
+    for(Message item :localFile.getCopyOfMessages())
     {
       this.newMessage(item.id, item.author, item.conversation, item.content, item.creation);
     }
@@ -89,9 +89,9 @@ public final class Controller implements RawController, BasicController {
 
       message = new Message(id, Uuid.NULL, Uuid.NULL, creationTime, author, body,conversation);
       model.add(message);
-      if(storage != null)
+      if(localFile != null)
       {
-        storage.addMessage(message);
+        localFile.addMessage(message);
       }
       LOG.info("Message added: %s", message.id);
 
@@ -135,9 +135,9 @@ public final class Controller implements RawController, BasicController {
 
       user = new User(id, name, creationTime);
       model.add(user);
-      if(storage != null)
+      if(localFile != null)
       {
-        storage.addUser(user);
+        localFile.addUser(user);
       }
       LOG.info(
           "newUser success (user.id=%s user.name=%s user.time=%s)",
@@ -167,9 +167,9 @@ public final class Controller implements RawController, BasicController {
     if (foundOwner != null && isIdFree(id)) {
       conversation = new ConversationHeader(id, owner, creationTime, title);
       model.add(conversation);
-      if(storage != null)
+      if(localFile != null)
       {
-        storage.addConversationHeader(conversation);
+        localFile.addConversationHeader(conversation);
       }
       LOG.info("Conversation added: " + id);
     }
