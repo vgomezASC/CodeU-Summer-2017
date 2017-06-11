@@ -14,6 +14,8 @@
 
 package codeu.chat.client.core;
 
+import java.io.IOException;
+import java.rmi.UnexpectedException;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -23,6 +25,7 @@ import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.User;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
@@ -136,4 +139,26 @@ final class View implements BasicView {
 
     return messages;
   }
+  /**
+   * Get the info of the server; version info should be returned currently.
+   * @return The infomation of the server. If fails, null will be returned.
+   */
+  public ServerInfo getInfo() {
+    try (final Connection connection = this.source.connect()) {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.SERVER_INFO_REQUEST);
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.SERVER_INFO_RESPONSE) {
+        final Uuid version = Uuid.SERIALIZER.read(connection.in());
+        return new ServerInfo(version);
+      } else {
+        // Communicate this error - the server did not respond with the type of
+        // response we expected.
+        new IOException("ERROR: The server did not respond with the type of response we expected.").printStackTrace();
+      }
+    } catch (Exception ex) {
+      // Communicate this error - something went wrong with the connection.
+      new UnexpectedException("FATAL ERROR: Unexpected error occurs, something went wrong while client was trying to connect to server.").printStackTrace();
+    }
+    // If we get here it means something went wrong and null should be returned
+    return null;
+}
 }

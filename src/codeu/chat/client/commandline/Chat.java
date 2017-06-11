@@ -14,19 +14,24 @@
 
 package codeu.chat.client.commandline;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Stack;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.io.IOException;
+
 
 import codeu.chat.client.core.Context;
 import codeu.chat.client.core.ConversationContext;
 import codeu.chat.client.core.MessageContext;
 import codeu.chat.client.core.UserContext;
 import codeu.chat.util.Tokenizer;
+
+import codeu.chat.common.ServerInfo;
 
 public final class Chat {
 
@@ -50,6 +55,7 @@ public final class Chat {
   // the system wants to exit, the function will return false.
   //
   public boolean handleCommand(String line) {
+
     final List<String> args = new ArrayList<>();
     final Tokenizer tokenizer = new Tokenizer(line);
     
@@ -120,11 +126,30 @@ public final class Chat {
         System.out.println("    Add a new user with the given name.");
         System.out.println("  u-sign-in <name>");
         System.out.println("    Sign in as the user with the given name.");
+        System.out.println("  info");
+        System.out.println("    Get session information.");
         System.out.println("  exit");
-        System.out.println("    Exit the program.");
+        System.out.println("    Exit the program.");       
       }
     });
-
+    // info (Server info)
+    //
+    // Get some infomation from server; it should be version info currently
+    //
+    panel.register("info", new Panel.Command() {
+        @Override
+        public void invoke(List<String> args) {
+          final ServerInfo info = context.getInfo();
+          if (info == null) {
+            // Communicate error to user - the server did not send us a valid
+            // info object.
+            new IOException("ERROR: ServerInfo cannot be read.").printStackTrace();
+          } else {
+            //Print server info
+            System.out.println("Version:" + info.version);
+          }
+        }
+    });
     // U-LIST (user list)
     //
     // Add a command to print all users registered on the server when the user
