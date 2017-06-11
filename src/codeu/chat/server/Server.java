@@ -71,14 +71,14 @@ public final class Server {
 
   private final File file;
   private final LocalFile localFile;
-
+  //One extra is added to this constructor, which can get the path information from user.
   public Server(final Uuid id, final Secret secret, final Relay relay,final File localFilePath) {
 
     this.id = id;
     this.secret = secret;
     this.file = localFilePath;
-    this.localFile = new LocalFile(new File(file.getPath() + "/dat.sav"));
-    this.controller = new Controller(id, model,localFile);
+    this.localFile = new LocalFile(new File(file.getPath() + "/dat.sav"));//file path is given by user
+    this.controller = new Controller(id, model,localFile);//Use the new constructor to create this new controller.
     this.relay = relay;
 
     // New Message - A client wants to add a new message to the back end.

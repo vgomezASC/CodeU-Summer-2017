@@ -37,15 +37,20 @@ public final class Controller implements RawController, BasicController {
 
   private final LocalFile localFile;
 
+  private boolean isInitialized = false;
+
   public Controller(Uuid serverId, Model model) {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
     this.localFile = null;
   }
+  //New constructor, which can get the local file information.
   public Controller(Uuid serverId, Model model,LocalFile localFile) {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
-    this.localFile = localFile;
+    
+    this.localFile = localFile;//The path is assigned by server.
+    //Load the data from local file
     for (User item : localFile.getCopyOfUsers())
     {
       this.newUser(item.id, item.name, item.creation);
@@ -60,6 +65,8 @@ public final class Controller implements RawController, BasicController {
     {
       this.newMessage(item.id, item.author, item.conversation, item.content, item.creation);
     }
+    //Initialization Complete
+    isInitialized = true;
   }
 
   @Override
@@ -89,11 +96,19 @@ public final class Controller implements RawController, BasicController {
 
       message = new Message(id, Uuid.NULL, Uuid.NULL, creationTime, author, body,conversation);
       model.add(message);
-      if(localFile != null)
+      if(localFile != null && isInitialized)
       {
         localFile.addMessage(message);
       }
-      LOG.info("Message added: %s", message.id);
+      if(isInitialized)
+      {
+        LOG.info("Message added: %s", message.id);
+      }
+      else
+      {
+        //If it is initializing, messages should be read from local file not added a new record.
+        LOG.info("Message read from local file: %s", message.id);
+      }
 
       // Find and update the previous "last" message so that it's "next" value
       // will point to the new message.
@@ -135,15 +150,27 @@ public final class Controller implements RawController, BasicController {
 
       user = new User(id, name, creationTime);
       model.add(user);
-      if(localFile != null)
+      if(localFile != null && isInitialized)
       {
         localFile.addUser(user);
       }
-      LOG.info(
-          "newUser success (user.id=%s user.name=%s user.time=%s)",
-          id,
-          name,
-          creationTime);
+      if(isInitialized)
+      {
+        LOG.info(
+            "newUser success (user.id=%s user.name=%s user.time=%s)",
+            id,
+            name,
+            creationTime);
+      }
+      else
+      {
+        //If it is initializing, users should be read from local file not added a new record.
+        LOG.info(
+            "User is read from local file successfully. (user.id=%s user.name=%s user.time=%s)",
+            id,
+            name,
+            creationTime);
+      }
 
     } else {
 
@@ -171,7 +198,15 @@ public final class Controller implements RawController, BasicController {
       {
         localFile.addConversationHeader(conversation);
       }
-      LOG.info("Conversation added: " + id);
+      if(isInitialized)
+      {
+        LOG.info("Conversation added: " + id);
+      }
+      else
+      {
+        //If it is initializing, conversations should be read from local file not added a new record.
+        LOG.info("Conversation read from local file", id);
+      }
     }
 
     return conversation;
