@@ -27,6 +27,7 @@ import codeu.chat.client.core.ConversationContext;
 import codeu.chat.client.core.MessageContext;
 import codeu.chat.client.core.UserContext;
 import codeu.chat.util.Tokenizer;
+import codeu.chat.util.Uuid;
 
 public final class Chat {
 
@@ -38,8 +39,10 @@ public final class Chat {
   // panel to the top of the stack. When a command wants to go to the previous
   // panel all it needs to do is pop the top panel.
   private final Stack<Panel> panels = new Stack<>();
+  private Context context; // made global because more than one Panel type uses this.
 
   public Chat(Context context) {
+  	this.context = context;
     this.panels.push(createRootPanel(context));
   }
 
@@ -228,6 +231,8 @@ public final class Chat {
         System.out.println("    Add a new conversation with the given title and join it as the current user.");
         System.out.println("  c-join <title>");
         System.out.println("    Join the conversation as the current user.");
+        System.out.println("  status-update");
+        System.out.println("    Get updates on the interests you're following.");
         System.out.println("  info");
         System.out.println("    Display all info for the current user");
         System.out.println("  back");
@@ -318,7 +323,19 @@ public final class Chat {
         return null;
       }
     });
-
+	
+	// STATUS-UPDATE (retrieve new interesting messages)
+	//
+	// While on the user panel, add a command to retrieve new messages from users and
+	// conversations the current user is following. This will generate an interest panel.
+	panel.register("status-update", new Panel.Command(){
+	  @Override
+	  public void invoke(List<String> args){
+	    System.out.println("Opening Status Update...");
+		panels.push(createInterestPanel(user));
+	  }
+	});
+	
     // INFO
     //
     // Add a command that will print info about the current context when the
@@ -337,7 +354,7 @@ public final class Chat {
     // so that it can be used.
     return panel;
   }
-
+  
   private Panel createConversationPanel(final ConversationContext conversation) {
 
     final Panel panel = new Panel();
@@ -377,7 +394,7 @@ public final class Chat {
                             message != null;
                             message = message.next()) {
           System.out.println();
-          System.out.format("USER : %s\n", message.message.author);
+          System.out.format("USER : %s\n", findUsername(message.message.author));
           System.out.format("SENT : %s\n", message.message.creation);
           System.out.println();
           System.out.println(message.message.content);
@@ -385,7 +402,51 @@ public final class Chat {
         }
         System.out.println("---  end of conversation  ---");
       }
+      
+      // Find the user with the given UUID and return their username.
+      // If no user has the given UUID this will return "Anonymous".
+      private String findUsername(Uuid author) {
+        for (final UserContext user : context.allUsers()) {
+          if (user.user.id.equals(author)) {
+            return user.user.name;
+          }
+        }
+        return "Anonymous";
+      }
+      
     });
+    
+    // This commented-out feature is  a bookmark-checking test I made to help me keep
+    // track. 
+
+   /* panel.register("m-check", new Panel.Command(){
+      @Override
+      public void invoke(List<String> args) {
+      	System.out.println("--- new from "+conversation.conversation.title+" ---");
+        for (MessageContext message = conversation.bookmark;
+                            message != null;
+                            message = message.next()) {
+          System.out.println();
+          System.out.format("USER : %s\n", findUsername(message.message.author));
+          System.out.format("SENT : %s\n", message.message.creation);
+          System.out.println();
+          System.out.println(message.message.content);
+          System.out.println();
+        }
+        System.out.println("---  end of conversation  ---");
+        conversation.bookmark = conversation.lastMessage();
+      }
+      
+      private String findUsername(Uuid author) {
+        for (final UserContext user : context.allUsers()) {
+          if (user.user.id.equals(author)) {
+            return user.user.name;
+          }
+        }
+        return "Anonymous";
+      }
+      
+    });*/
 
     // M-ADD (add message)
     //
@@ -431,5 +492,85 @@ public final class Chat {
     // Now that the panel has all its commands registered, return the panel
     // so that it can be used.
     return panel;
+  }
+  
+  private Panel createInterestPanel(final UserContext user) {
+
+    final Panel panel = new Panel();
+	// print out summary of things nicely. to be implemented
+
+    // HELP
+    //
+    // Add a command that will print a list of all commands and their
+    // descriptions when the user enters "help" while on the user panel.
+    //
+    panel.register("help", new Panel.Command() {
+      @Override
+      public void invoke(List<String> args) {
+        System.out.println("USER MODE");
+        System.out.println("  s-add <title>");
+        System.out.println("    Add an interest.");
+        System.out.println("  s-del <title>");
+        System.out.println("    Delete an interest.");
+        System.out.println("  back");
+        System.out.println("    Go back to ROOT MODE.");
+        System.out.println("  exit");
+        System.out.println("    Exit the program.");
+      }
+    });
+    
+    // S-ADD (add interest)
+    //
+    // Add a command that will add a certain interest to their InterestSet when the 
+    // user enters "s-add" while on the user panel.
+    //
+    panel.register("s-add", new Panel.Command(){
+      @Override
+      public void invoke(List<String> args) {
+        if (args.size()<1) {
+      	  System.out.println("ERROR: No user or chat given.");
+      	} else {
+      	  String message = "Pretending to add "+args.get(0);
+          args.remove(0);
+      	  for (String s: args){
+            message += " "+s;
+          }
+        
+          if (message.length() > 0) {
+            System.out.println(message);
+          } else {
+            System.out.println("ERROR: No user or chat given.");
+          }
+        }
+      }
+    });
+    
+    // S-DEL (delete interest)
+    //
+    // Add a command that will delete a certain interest from their InterestSet when the 
+    // user enters "s-del" while on the user panel.
+    //
+    panel.register("s-del", new Panel.Command(){
+      @Override
+      public void invoke(List<String> args) {
+        if (args.size()<1) {
+      	  System.out.println("ERROR: No user or chat given.");
+      	} else {
+      	  String message = "Pretending to delete "+args.get(0);
+          args.remove(0);
+      	  for (String s: args){
+            message += " "+s;
+          }
+        
+          if (message.length() > 0) {
+            System.out.println(message);
+          } else {
+            System.out.println("ERROR: No user or chat given.");
+          }
+        }
+      }
+    });
+    
+      return panel;
   }
 }

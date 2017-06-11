@@ -50,5 +50,12 @@ public interface BasicController {
   //  representing the full state of the conversation on the server.
   //  Whether conversations can have the same title is undefined.
   ConversationHeader newConversation(String title, Uuid owner);
+  
+  // GET INTEREST SET
+  // 
+  // Get a User's InterestSet as allotted by the server. All parameters
+  // must be provided or else the server won't apply the change. If the
+  // operation is successful, the InterestSet will be accessed.
+  InterestSet getInterestSet(User user);
 
 }

@@ -19,6 +19,7 @@ import java.util.Collection;
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
+import codeu.chat.common.InterestSet;
 import codeu.chat.common.Message;
 import codeu.chat.common.RandomUuidGenerator;
 import codeu.chat.common.RawController;
@@ -141,6 +142,12 @@ public final class Controller implements RawController, BasicController {
     }
 
     return conversation;
+  }
+  
+  @Override
+  public InterestSet getInterestSet(User user){
+    // Under construction as of this commit.
+    return new InterestSet();
   }
 
   private Uuid createId() {

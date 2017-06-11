@@ -50,7 +50,7 @@ public final class ConversationContext {
     final Message message = controller.newMessage(user.id,
                                                   conversation.id,
                                                   messageBody);
-
+	
     return message == null ?
         null :
         new MessageContext(message, view);

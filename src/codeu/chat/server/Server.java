@@ -27,6 +27,7 @@ import java.util.Map;
 
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
+import codeu.chat.common.InterestSet;
 import codeu.chat.common.LinearUuidGenerator;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
@@ -53,6 +54,7 @@ public final class Server {
   private final Timeline timeline = new Timeline();
 
   private final Map<Integer, Command> commands = new HashMap<>();
+  private Map<User, InterestSet> interestMap = new HashMap<>();
 
   private final Uuid id;
   private final Secret secret;
@@ -99,6 +101,7 @@ public final class Server {
 
         final String name = Serializers.STRING.read(in);
         final User user = controller.newUser(name);
+        interestMap.put(user, new InterestSet());
 
         Serializers.INTEGER.write(out, NetworkCode.NEW_USER_RESPONSE);
         Serializers.nullable(User.SERIALIZER).write(out, user);
