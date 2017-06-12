@@ -55,7 +55,8 @@ public class LocalFile implements Serializable
         }
         catch(Exception exception)
         {
-            System.out.println("ERROR:Unable to read data");
+            System.out.println("ERROR:Unable to read data.");
+            System.out.println("WARNING:If it is the case that the file doesn't exist, a new local file will be created.");
             exception.printStackTrace();
         }
         finally
