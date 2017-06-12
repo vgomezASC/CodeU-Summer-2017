@@ -23,6 +23,7 @@ import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
+import jdk.internal.dynalink.linker.ConversionComparator;
 
 public final class Message implements Serializable{
 
@@ -62,7 +63,7 @@ public final class Message implements Serializable{
   public final Uuid author;
   public final String content;
   public Uuid next;
-  public Uuid conversation;
+  public final Uuid conversation;
 
   public Message(Uuid id, Uuid next, Uuid previous, Time creation, Uuid author, String content) {
 
@@ -72,7 +73,7 @@ public final class Message implements Serializable{
     this.creation = creation;
     this.author = author;
     this.content = content;
-
+    conversation = null;
   }
 
   public Message(Uuid id, Uuid next, Uuid previous, Time creation, Uuid author, String content,Uuid conversation) {

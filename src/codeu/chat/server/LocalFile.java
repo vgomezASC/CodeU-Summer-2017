@@ -26,11 +26,11 @@ public class LocalFile implements Serializable
     private final HashMap<Uuid,ConversationHeader> conversationHeaders;
     private final HashMap<Uuid,Message> messages;
 
-    private final File file;
+    private transient final File file;
 
     private static final Logger.Log LOG = Logger.newLog(LocalFile.class);
 
-    private boolean hasModified = false;//It indicates if there is a new data should be handled.
+    private transient boolean hasModified = false;//It indicates if there is a new data should be handled.
     public LocalFile(File file)
     {
         this.file = file;
@@ -49,7 +49,6 @@ public class LocalFile implements Serializable
             tempUsers = newClass.users;
             tempConversationHeaders = newClass.conversationHeaders;
             tempMessages = newClass.messages;
-            hasModified = false;
 
             fileInputStream.close();
             objectInputStream.close();
