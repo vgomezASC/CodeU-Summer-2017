@@ -39,7 +39,7 @@ public class LocalFile implements Serializable
         HashMap<Uuid,ConversationHeader>tempConversationHeaders= new HashMap<>();
         HashMap<Uuid,Message>tempMessages= new HashMap<>();
         //Deserialization
-        try(     FileInputStream fileInputStream = new FileInputStream(file);
+        try(FileInputStream fileInputStream = new FileInputStream(file);
 		    ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream))
         {
             //Read the information to current instance
@@ -58,14 +58,14 @@ public class LocalFile implements Serializable
             {
                 exception.printStackTrace();
                 System.out.println("ERROR:Unable to read data.");
-                throw new RuntimeException("Error:Unable to run the program. Local file cannot be read.");
+                throw new RuntimeException("ERROR:Unable to run the program. Local file cannot be read.");
             }
         }
         catch(ClassNotFoundException exception)
         {
             System.out.println("ERROR:Failed to desrialized the local data.");
             exception.printStackTrace();
-            throw new RuntimeException("Error:Unable to run the program. Local file cannot be read.");
+            throw new RuntimeException("ERROR:Unable to run the program. Local file cannot be read.");
         }
        //Write temporary information to the instance varibles
        users = tempUsers;
