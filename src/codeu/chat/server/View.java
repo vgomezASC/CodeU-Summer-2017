@@ -31,6 +31,7 @@ import codeu.chat.common.BasicView;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.Message;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.common.SinglesView;
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
@@ -43,6 +44,8 @@ public final class View implements BasicView, SinglesView {
   private final static Logger.Log LOG = Logger.newLog(View.class);
 
   private final Model model;
+
+  private final static ServerInfo info = new ServerInfo();
 
   public View(Model model) {
     this.model = model;
@@ -110,5 +113,15 @@ public final class View implements BasicView, SinglesView {
     }
 
     return found;
+  }
+
+/**
+   * Get the info of the server; version info should be returned currently.
+   * @return The infomation of the server. If fails, null will be returned.
+   */
+  @Override
+  public ServerInfo getInfo() 
+  {
+    return info;
   }
 }

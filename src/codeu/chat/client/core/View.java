@@ -143,6 +143,7 @@ final class View implements BasicView {
    * Get the info of the server; version info should be returned currently.
    * @return The infomation of the server. If fails, null will be returned.
    */
+  @Override
   public ServerInfo getInfo() {
     try (final Connection connection = this.source.connect()) {
       Serializers.INTEGER.write(connection.out(), NetworkCode.SERVER_INFO_REQUEST);
