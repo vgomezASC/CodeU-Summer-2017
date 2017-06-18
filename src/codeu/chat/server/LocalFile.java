@@ -38,34 +38,39 @@ public class LocalFile implements Serializable
         HashMap<Uuid,User>tempUsers = new HashMap<>();
         HashMap<Uuid,ConversationHeader>tempConversationHeaders= new HashMap<>();
         HashMap<Uuid,Message>tempMessages= new HashMap<>();
-        try
+        //Deserialization
+        try(     FileInputStream fileInputStream = new FileInputStream(file);
+		    ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream))
         {
-            //Deserialization
-            RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
-            FileInputStream fileInputStream = new FileInputStream(randomAccessFile.getFD());
-		    ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
             //Read the information to current instance
 		    newClass = (LocalFile)objectInputStream.readObject();
             tempUsers = newClass.users;
             tempConversationHeaders = newClass.conversationHeaders;
             tempMessages = newClass.messages;
-
-            fileInputStream.close();
-            objectInputStream.close();
         }
-        catch(Exception exception)
+        catch(IOException exception)
         {
-            System.out.println("ERROR:Unable to read data.");
-            System.out.println("WARNING:If it is the case that the file doesn't exist, a new local file will be created.");
+            if(!file.exists())
+            {
+                System.out.println("WARNING:File doesn't exist, a new local file will be created.");
+            }
+            else
+            {
+                exception.printStackTrace();
+                System.out.println("ERROR:Unable to read data.");
+                throw new RuntimeException("Error:Unable to run the program. Local file cannot be read.");
+            }
+        }
+        catch(ClassNotFoundException exception)
+        {
+            System.out.println("ERROR:Failed to desrialized the local data.");
             exception.printStackTrace();
+            throw new RuntimeException("Error:Unable to run the program. Local file cannot be read.");
         }
-        finally
-        {
-            //Write temporary information to the instance varibles
-            users = tempUsers;
-            conversationHeaders = tempConversationHeaders;
-            messages = tempMessages;
-        }
+       //Write temporary information to the instance varibles
+       users = tempUsers;
+       conversationHeaders = tempConversationHeaders;
+       messages = tempMessages;
     }
     /**
      * Save the data into local file.
@@ -78,21 +83,20 @@ public class LocalFile implements Serializable
         {
             return;
         }
-        hasModified = false;
+
         if(!file.exists())
         {
             file.createNewFile();
         }
         //Serialization
-        RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
-        FileOutputStream fileOutputStream = new FileOutputStream(randomAccessFile.getFD());
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-        objectOutputStream.writeObject(this); 
+        try(FileOutputStream fileOutputStream = new FileOutputStream(file);
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream))
+        {
+         objectOutputStream.writeObject(this); 
 
-        LOG.info("Data saved!");
-
-        fileOutputStream.close();
-        objectOutputStream.close();
+         LOG.info("Data saved!");
+        }
+        hasModified = false;
     }
     /**
      * Get a copy of users
@@ -160,7 +164,7 @@ public class LocalFile implements Serializable
         {
             return;
         }
-        messages.put(message.id, message);//If repetition happens, hasMofified should be false still.
-        hasModified = true;
+       messages.put(message.id, message);//If repetition happens, hasMofified should be false still.
+       hasModified = true;
     }
 }

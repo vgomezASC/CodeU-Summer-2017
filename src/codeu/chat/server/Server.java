@@ -48,8 +48,6 @@ public final class Server {
     void onMessage(InputStream in, OutputStream out) throws IOException;
   }
 
-  private static final ServerInfo info = new ServerInfo();
-
   private static final Logger.Log LOG = Logger.newLog(Server.class);
 
   private static final int RELAY_REFRESH_MS = 5000;  // 5 seconds
@@ -188,7 +186,7 @@ public final class Server {
       public void onMessage(InputStream in,OutputStream out) throws IOException
       {
         Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
-        Uuid.SERIALIZER.write(out, info.version);
+        Uuid.SERIALIZER.write(out, view.getInfo().version);
       }
     });
 
@@ -221,12 +219,15 @@ public final class Server {
         try
         {
           localFile.saveData();
-          timeline.scheduleIn(LOCAL_FILE_REFRESH_MS, this);
         }
         catch(IOException exception)
         {
           System.out.println("ERROR:Failed to store file!");
           exception.printStackTrace();
+        }
+        finally
+        {
+          timeline.scheduleIn(LOCAL_FILE_REFRESH_MS, this);
         }
       }
     });
