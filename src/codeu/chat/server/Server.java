@@ -218,7 +218,7 @@ public final class Server {
       {
         try
         {
-          controller.saveData();
+          localFile.saveData();
         }
         catch(IOException exception)
         {

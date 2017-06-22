@@ -58,10 +58,10 @@ public final class Controller implements RawController, BasicController {
   public Controller(Uuid serverId, Model model) {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
-    this.localFile = null;
-    this.userFile = null;
-    this.conversationFile = null;
-    this.messageFile = null;
+    this.localFile = new LocalFile(new File("."));
+    this.userFile = new File(localFile.getPath() + LocalFile.USER_FILE_NAME);
+    this.conversationFile = new File(localFile.getPath() + LocalFile.CONVERSATION_FILE_NAME);
+    this.messageFile = new File(localFile.getPath() + LocalFile.MESSAGE_FILE_NAME);
   }
   //New constructor, which can get the local file information.
   public Controller(Uuid serverId, Model model,LocalFile localFile) {
@@ -69,23 +69,12 @@ public final class Controller implements RawController, BasicController {
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
     
     this.localFile = localFile;//The path is assigned by server.
-    userFile = new File(localFile.getPath() + "/usrDat.sav");
-    conversationFile = new File(localFile.getPath() + "/cvrsDat.sav");
-    messageFile = new File(localFile.getPath() + "/msgDat.sav");
+
+    userFile = new File(localFile.getPath() + LocalFile.USER_FILE_NAME);
+    conversationFile = new File(localFile.getPath() + LocalFile.CONVERSATION_FILE_NAME);
+    messageFile = new File(localFile.getPath() + LocalFile.MESSAGE_FILE_NAME);
     try
     {
-      if(!userFile.exists())
-      {
-        userFile.createNewFile();
-      }      
-      if(!conversationFile.exists())
-      {
-        conversationFile.createNewFile();
-      }
-      if(!messageFile.exists())
-      {
-        messageFile.createNewFile();
-      }
       FileInputStream userInputStream = new FileInputStream(userFile);
       if(userInputStream.available() > 0)
       {
@@ -156,12 +145,9 @@ public final class Controller implements RawController, BasicController {
 
       message = new Message(id, Uuid.NULL, Uuid.NULL, creationTime, author, body,conversation);
       model.add(message);
-      if(localFile != null && isInitialized)
-      {
-        localFile.addMessage(message);
-      }
       if(isInitialized)
       {
+        localFile.addMessage(message);
         LOG.info("Message added: %s", message.id);
       }
       else
@@ -210,12 +196,9 @@ public final class Controller implements RawController, BasicController {
 
       user = new User(id, name, creationTime);
       model.add(user);
-      if(localFile != null && isInitialized)
-      {
-        localFile.addUser(user);
-      }
       if(isInitialized)
       {
+        localFile.addUser(user);
         LOG.info(
             "newUser success (user.id=%s user.name=%s user.time=%s)",
             id,
@@ -254,12 +237,9 @@ public final class Controller implements RawController, BasicController {
     if (foundOwner != null && isIdFree(id)) {
       conversation = new ConversationHeader(id, owner, creationTime, title);
       model.add(conversation);
-      if(localFile != null && isInitialized)
-      {
-        localFile.addConversationHeader(conversation);
-      }
       if(isInitialized)
       {
+        localFile.addConversationHeader(conversation);
         LOG.info("Conversation added: " + id);
       }
       else
@@ -296,113 +276,4 @@ public final class Controller implements RawController, BasicController {
   }
 
   private boolean isIdFree(Uuid id) { return !isIdInUse(id); }
-  /**
-   * Save user data
-   * @throws IOException
-   */
-  private FileOutputStream saveUsers() throws IOException
-  {
-    FileOutputStream userStream = null;
-    try
-    {
-      userStream = new FileOutputStream(userFile);
-      localUsers.write(userStream, localFile.getCopyOfUsers(true));
-    }
-    catch(FileNotFoundException exception)
-    {
-      System.out.println("ERROR:Unacceptable file path");
-      exception.printStackTrace();
-      throw exception;
-    }
-    catch(IOException exception)
-    {
-      System.out.println("ERROR:Failed to get ConversationHeaderStream!");
-      exception.printStackTrace();
-      throw exception;
-    }
-    return userStream;
-  }
-  /**
-   * Save conversation data
-   * @throws IOException
-   */
-  private FileOutputStream saveConversationHeaders() throws IOException
-  {
-    FileOutputStream conversationStream = null;
-    try
-    {
-      conversationStream = new FileOutputStream(conversationFile);
-      localConversationHeaders.write(conversationStream, localFile.getCopyOfConversationHeaders(true));
-    }
-    catch (FileNotFoundException exception)
-    {
-      System.out.println("ERROR:Unacceptable file path");
-      exception.printStackTrace();
-      throw exception;
-    }
-    catch(IOException exception)
-    {
-      System.out.println("ERROR:Failed to get ConversationHeaderStream!");
-      exception.printStackTrace();
-      throw exception;
-    }
-    return conversationStream;
-  }
-  /**
-   * Save message data
-   * @throws IOException
-   */
-  private FileOutputStream saveMessages() throws IOException
-  {
-    FileOutputStream messageStream = null;
-    try
-    {
-      messageStream = new FileOutputStream(messageFile);
-      localMessages.write(messageStream, localFile.getCopyOfMessages(true));
-    }
-    catch (FileNotFoundException exception)
-    {
-      System.out.println("ERROR:Unacceptable file path");
-      exception.printStackTrace();
-      throw exception;
-    }
-    catch (IOException exception)
-    {
-      System.out.println("ERROR:Failed to get ConversationHeaderStream!");
-      exception.printStackTrace();
-      throw exception;
-    }
-    return messageStream;
-  }
-  /**
-   * Save all data
-   * @throws IOException
-   */
-  public void saveData() throws IOException
-  {
-    try
-    {
-      if(localFile.hasConversationModified())
-      {
-        saveConversationHeaders();
-        LOG.info("Conversation data Saved!");
-      }
-      if(localFile.hasMessageModified())
-      {
-        saveMessages();
-        LOG.info("Message data Saved!");
-      }
-      if(localFile.hasUserModified())
-      {
-        saveUsers();
-        LOG.info("User data Saved!");
-      }
-    }
-    catch(IOException exception)
-    {
-      System.out.println("ERROR:Failed to get ConversationHeaderStream!");
-      exception.printStackTrace();
-      throw exception;
-    }
-  }
 }
