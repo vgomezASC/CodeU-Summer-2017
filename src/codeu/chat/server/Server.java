@@ -103,9 +103,6 @@ public final class Server {
         final String name = Serializers.STRING.read(in);
         final User user = controller.newUser(name);
         
-        // implement an equivalent
-        // interestMap.put(user, new InterestSet());
-
         Serializers.INTEGER.write(out, NetworkCode.NEW_USER_RESPONSE);
         Serializers.nullable(User.SERIALIZER).write(out, user);
       }
@@ -211,6 +208,17 @@ public final class Server {
         return null;
       }
       
+    });
+    
+    this.commands.put(NetworkCode.INTEREST_SET_REQUEST, new Command()
+    {
+      @Override
+      public void onMessage(InputStream in,OutputStream out) throws IOException
+      {
+        final User user = User.SERIALIZER.read(in);
+        final InterestSet intSet = InterestSet.SERIALIZER.read(in);
+        model.updateInterests(user, intSet);
+      }
     });
 
     this.timeline.scheduleNow(new Runnable() {

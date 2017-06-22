@@ -69,7 +69,7 @@ public final class Model {
   private final Store<Time, Message> messageByTime = new Store<>(TIME_COMPARE);
   private final Store<String, Message> messageByText = new Store<>(STRING_COMPARE);
 
-  private HashMap<User, InterestSet> interestMap = new HashMap<User, InterestSet>();
+  private HashMap<User, InterestSet> interestMap = new HashMap<User, InterestSet>(100);
 
   public void add(User user) {
     userById.insert(user.id, user);

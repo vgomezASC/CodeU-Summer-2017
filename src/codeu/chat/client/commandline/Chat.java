@@ -441,6 +441,8 @@ public final class Chat {
       
     });
     
+    // M-CHECK
+    //
     // This commented-out feature is  a bookmark-checking test I made to help me keep
     // track. Making this work is your next step.
 
@@ -593,7 +595,16 @@ public final class Chat {
         if (args.size()<1) {
       	  System.out.println("ERROR: No user or chat given.");
       	} else {
-      	  String message = "Pretending to add "+args.get(0);
+      	  String message = "Pretending to add interest in ";
+          User userResult = findUser(args.get(0));
+      	  ConversationContext chatResult = findConversation(args.get(0));
+      	  if(userResult != null){
+          	message += "user "+args.get(0);
+          }else if(chatResult != null){
+            message += "chat "+args.get(0);
+          } else {
+            message = "ERROR: No valid user or chat given.";
+          }
           args.remove(0);
       	  for (String s: args){
             message += " "+s;
@@ -605,6 +616,24 @@ public final class Chat {
             System.out.println("ERROR: No user or chat given.");
           }
         }
+      }
+      
+      private User findUser(String name) {
+        for (final UserContext user : context.allUsers()) {
+          if (user.user.name.equals(name)) {
+            return user.user;
+          }
+        }
+        return null;
+      }
+      
+      private ConversationContext findConversation(String name) {
+        for (final ConversationContext conversation : user.conversations()) {
+          if (conversation.conversation.title.equals(name)) {
+            return conversation;
+          }
+        }
+        return null;
       }
     });
     
@@ -619,7 +648,16 @@ public final class Chat {
         if (args.size()<1) {
       	  System.out.println("ERROR: No user or chat given.");
       	} else {
-      	  String message = "Pretending to delete "+args.get(0);
+      	  String message = "Pretending to delete interest in ";
+      	  User userResult = findUser(args.get(0));
+      	  ConversationContext chatResult = findConversation(args.get(0));
+      	  if(userResult != null){
+          	message += "user "+args.get(0);
+          }else if(chatResult != null){
+            message += "chat "+args.get(0);
+          } else {
+            message = "ERROR: No valid user or chat given.";
+          }
           args.remove(0);
       	  for (String s: args){
             message += " "+s;
@@ -631,6 +669,23 @@ public final class Chat {
             System.out.println("ERROR: No user or chat given.");
           }
         }
+      }
+      private User findUser(String name) {
+        for (final UserContext user : context.allUsers()) {
+          if (user.user.name.equals(name)) {
+            return user.user;
+          }
+        }
+        return null;
+      }
+      
+      private ConversationContext findConversation(String name) {
+        for (final ConversationContext conversation : user.conversations()) {
+          if (conversation.conversation.title.equals(name)) {
+            return conversation;
+          }
+        }
+        return null;
       }
     });
     
