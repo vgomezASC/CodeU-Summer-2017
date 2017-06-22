@@ -14,6 +14,12 @@
 
 package codeu.chat.server;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Collection;
 
 import codeu.chat.common.BasicController;
@@ -25,6 +31,8 @@ import codeu.chat.common.RawController;
 import codeu.chat.common.User;
 import codeu.chat.server.LocalFile;
 import codeu.chat.util.Logger;
+import codeu.chat.util.Serializer;
+import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 
@@ -35,7 +43,15 @@ public final class Controller implements RawController, BasicController {
   private final Model model;
   private final Uuid.Generator uuidGenerator;
 
+  private final Serializer<Collection<Message>> localMessages = Serializers.collection(Message.SERIALIZER);
+  private final Serializer<Collection<ConversationHeader>> localConversationHeaders = Serializers.collection(ConversationHeader.SERIALIZER);
+  private final Serializer<Collection<User>> localUsers = Serializers.collection(User.SERIALIZER);
+
   private final LocalFile localFile;
+
+  private final File userFile;
+  private final File conversationFile;
+  private final File messageFile;
 
   private boolean isInitialized = false;
 
@@ -43,6 +59,9 @@ public final class Controller implements RawController, BasicController {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
     this.localFile = null;
+    this.userFile = null;
+    this.conversationFile = null;
+    this.messageFile = null;
   }
   //New constructor, which can get the local file information.
   public Controller(Uuid serverId, Model model,LocalFile localFile) {
@@ -50,22 +69,63 @@ public final class Controller implements RawController, BasicController {
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
     
     this.localFile = localFile;//The path is assigned by server.
-    //Load the data from local file
-    for (User item : localFile.getCopyOfUsers())
+    userFile = new File(localFile.getPath() + "/usrDat.sav");
+    conversationFile = new File(localFile.getPath() + "/cvrsDat.sav");
+    messageFile = new File(localFile.getPath() + "/msgDat.sav");
+    try
     {
-      this.newUser(item.id, item.name, item.creation);
-    }
+      if(!userFile.exists())
+      {
+        userFile.createNewFile();
+      }      
+      if(!conversationFile.exists())
+      {
+        conversationFile.createNewFile();
+      }
+      if(!messageFile.exists())
+      {
+        messageFile.createNewFile();
+      }
+      FileInputStream userInputStream = new FileInputStream(userFile);
+      if(userInputStream.available() > 0)
+      {
+       Collection<User> userData = localUsers.read(userInputStream);
+       for (User item : userData)
+       {
+         this.newUser(item.id, item.name, item.creation);
+         localFile.addUser(item);
+       }
+      }
+      
+      FileInputStream conversationInputStream = new FileInputStream(conversationFile);
+      if(conversationInputStream.available() > 0)
+      {
+        Collection<ConversationHeader> conversationData =  localConversationHeaders.read(conversationInputStream);
+        for (ConversationHeader item : conversationData)
+        {
+          this.newConversation(item.id, item.title, item.owner, item.creation);
+          localFile.addConversationHeader(item);
+        }
+      }
 
-    for (ConversationHeader item : localFile.getCopyOfConversationHeaders())
-    {
-      this.newConversation(item.id, item.title, item.owner, item.creation);
+      FileInputStream messageInputStream = new FileInputStream(messageFile);
+      if(messageInputStream.available() > 0)
+      {
+          Collection<Message> messageData = localMessages.read(messageInputStream);
+          for(Message item : messageData)
+          {
+            this.newMessage(item.id, item.author, item.conversation, item.content, item.creation);
+            localFile.addMessage(item);
+          }
+      } 
     }
-
-    for(Message item :localFile.getCopyOfMessages())
+    catch (IOException exception)
     {
-      this.newMessage(item.id, item.author, item.conversation, item.content, item.creation);
+      System.out.println("ERROR: Failed to read local data!");
+      exception.printStackTrace();
+      throw new RuntimeException("ERROR: Program will be terminated!"); 
     }
-    //Initialization Complete
+    localFile.finishInitialization();
     isInitialized = true;
   }
 
@@ -194,7 +254,7 @@ public final class Controller implements RawController, BasicController {
     if (foundOwner != null && isIdFree(id)) {
       conversation = new ConversationHeader(id, owner, creationTime, title);
       model.add(conversation);
-      if(localFile != null)
+      if(localFile != null && isInitialized)
       {
         localFile.addConversationHeader(conversation);
       }
@@ -236,5 +296,113 @@ public final class Controller implements RawController, BasicController {
   }
 
   private boolean isIdFree(Uuid id) { return !isIdInUse(id); }
-
+  /**
+   * Save user data
+   * @throws IOException
+   */
+  private FileOutputStream saveUsers() throws IOException
+  {
+    FileOutputStream userStream = null;
+    try
+    {
+      userStream = new FileOutputStream(userFile);
+      localUsers.write(userStream, localFile.getCopyOfUsers(true));
+    }
+    catch(FileNotFoundException exception)
+    {
+      System.out.println("ERROR:Unacceptable file path");
+      exception.printStackTrace();
+      throw exception;
+    }
+    catch(IOException exception)
+    {
+      System.out.println("ERROR:Failed to get ConversationHeaderStream!");
+      exception.printStackTrace();
+      throw exception;
+    }
+    return userStream;
+  }
+  /**
+   * Save conversation data
+   * @throws IOException
+   */
+  private FileOutputStream saveConversationHeaders() throws IOException
+  {
+    FileOutputStream conversationStream = null;
+    try
+    {
+      conversationStream = new FileOutputStream(conversationFile);
+      localConversationHeaders.write(conversationStream, localFile.getCopyOfConversationHeaders(true));
+    }
+    catch (FileNotFoundException exception)
+    {
+      System.out.println("ERROR:Unacceptable file path");
+      exception.printStackTrace();
+      throw exception;
+    }
+    catch(IOException exception)
+    {
+      System.out.println("ERROR:Failed to get ConversationHeaderStream!");
+      exception.printStackTrace();
+      throw exception;
+    }
+    return conversationStream;
+  }
+  /**
+   * Save message data
+   * @throws IOException
+   */
+  private FileOutputStream saveMessages() throws IOException
+  {
+    FileOutputStream messageStream = null;
+    try
+    {
+      messageStream = new FileOutputStream(messageFile);
+      localMessages.write(messageStream, localFile.getCopyOfMessages(true));
+    }
+    catch (FileNotFoundException exception)
+    {
+      System.out.println("ERROR:Unacceptable file path");
+      exception.printStackTrace();
+      throw exception;
+    }
+    catch (IOException exception)
+    {
+      System.out.println("ERROR:Failed to get ConversationHeaderStream!");
+      exception.printStackTrace();
+      throw exception;
+    }
+    return messageStream;
+  }
+  /**
+   * Save all data
+   * @throws IOException
+   */
+  public void saveData() throws IOException
+  {
+    try
+    {
+      if(localFile.hasConversationModified())
+      {
+        saveConversationHeaders();
+        LOG.info("Conversation data Saved!");
+      }
+      if(localFile.hasMessageModified())
+      {
+        saveMessages();
+        LOG.info("Message data Saved!");
+      }
+      if(localFile.hasUserModified())
+      {
+        saveUsers();
+        LOG.info("User data Saved!");
+      }
+    }
+    catch(IOException exception)
+    {
+      System.out.println("ERROR:Failed to get ConversationHeaderStream!");
+      exception.printStackTrace();
+      throw exception;
+    }
+  }
 }
