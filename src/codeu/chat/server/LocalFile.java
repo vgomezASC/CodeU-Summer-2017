@@ -121,6 +121,10 @@ public class LocalFile
      */
     public void addUser(User user)
     {
+        if(users.contains(user))
+        {
+            return;
+        }
         users.add(user);
         if(isInitialized)
         {
@@ -134,6 +138,10 @@ public class LocalFile
      */
     public void addConversationHeader(ConversationHeader header)
     {
+        if(conversationHeaders.contains(header))
+        {
+            return;
+        }
         conversationHeaders.add(header);//If repetition happens, hasMofified should be false still.
         if(isInitialized)
         {
@@ -147,6 +155,10 @@ public class LocalFile
      */
     public void addMessage(Message message)
     {
+       if(messages.contains(message))
+       {
+           return;
+       }
        messages.add(message);//If repetition happens, hasMofified should be false still.
        if(isInitialized)
        {
