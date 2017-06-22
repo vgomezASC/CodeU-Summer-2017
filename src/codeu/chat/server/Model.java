@@ -15,9 +15,11 @@
 package codeu.chat.server;
 
 import java.util.Comparator;
+import java.util.HashMap;
 
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
+import codeu.chat.common.InterestSet;
 import codeu.chat.common.LinearUuidGenerator;
 import codeu.chat.common.Message;
 import codeu.chat.common.User;
@@ -67,10 +69,13 @@ public final class Model {
   private final Store<Time, Message> messageByTime = new Store<>(TIME_COMPARE);
   private final Store<String, Message> messageByText = new Store<>(STRING_COMPARE);
 
+  private HashMap<User, InterestSet> interestMap = new HashMap<User, InterestSet>();
+
   public void add(User user) {
     userById.insert(user.id, user);
     userByTime.insert(user.creation, user);
     userByText.insert(user.name, user);
+    interestMap.put(user, new InterestSet());
   }
 
   public StoreAccessor<Uuid, User> userById() {
@@ -124,5 +129,13 @@ public final class Model {
 
   public StoreAccessor<String, Message> messageByText() {
     return messageByText;
+  }
+  
+  public InterestSet getInterestSet(User user){
+    System.out.println(interestMap.get(user));
+    return interestMap.get(user);
+  }
+  public void updateInterests(User user, InterestSet intSet){
+    interestMap.replace(user, intSet);
   }
 }

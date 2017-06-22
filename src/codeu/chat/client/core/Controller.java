@@ -20,17 +20,19 @@ import java.lang.Thread;
 
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
+import codeu.chat.common.InterestSet;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
+import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
 import codeu.chat.util.connections.ConnectionSource;
 
 final class Controller implements BasicController {
-
+  
   private final static Logger.Log LOG = Logger.newLog(Controller.class);
 
   private final ConnectionSource source;
@@ -112,4 +114,27 @@ final class Controller implements BasicController {
 
     return response;
   }
+  
+  // idk if we'll keep using this v
+  @Override
+  public InterestSet getInterestSet(User user){
+    InterestSet interestSet = null;
+    try (final Connection connection = source.connect()){
+      
+      Serializers.INTEGER.write(connection.out(), NetworkCode.INTEREST_SET_REQUEST);
+      Serializers.STRING.write(connection.out(), user.name);
+      // not sure if I'll need uuid here, we'll see
+      
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.INTEREST_SET_RESPONSE) {
+        interestSet = Serializers.nullable(InterestSet.SERIALIZER).read(connection.in());
+      } else {
+        LOG.error("Response from server failed.");
+      }
+      
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+    }
+    return interestSet;
+  }  
 }

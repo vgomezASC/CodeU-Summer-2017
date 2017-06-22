@@ -30,8 +30,10 @@ import java.util.regex.Pattern;
 import codeu.chat.common.BasicView;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
+import codeu.chat.common.InterestSet;
 import codeu.chat.common.Message;
 import codeu.chat.common.SinglesView;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
@@ -44,10 +46,11 @@ public final class View implements BasicView, SinglesView {
 
   private final Model model;
 
+  private static final ServerInfo info = new ServerInfo();
+
   public View(Model model) {
     this.model = model;
   }
-
 
   @Override
   public Collection<User> getUsers() {
@@ -68,7 +71,22 @@ public final class View implements BasicView, SinglesView {
   public Collection<Message> getMessages(Collection<Uuid> ids) {
     return intersect(model.messageById(), ids);
   }
-
+  
+  @Override
+  public ServerInfo getInfo(){
+    return info;
+  }  
+  
+  @Override
+  public InterestSet getInterestSet(User user){
+    return model.getInterestSet(user);
+  }
+  
+  @Override
+  public void updateInterests(User user, InterestSet intSet){
+    model.updateInterests(user, intSet);
+  }
+  
   @Override
   public User findUser(Uuid id) { return model.userById().first(id); }
 

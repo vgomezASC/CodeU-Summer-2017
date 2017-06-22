@@ -19,12 +19,14 @@ import java.util.Iterator;
 
 import codeu.chat.common.BasicView;
 import codeu.chat.common.Message;
+import codeu.chat.util.Serializer;
+import codeu.chat.util.Serializers;
 import codeu.chat.util.Uuid;
 
 public final class MessageContext {
-
+  
   public final Message message;
-  private final BasicView view;
+  public final BasicView view;
 
   public MessageContext(Message message, BasicView view) {
     this.message = message;

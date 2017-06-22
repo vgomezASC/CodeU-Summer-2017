@@ -52,4 +52,9 @@ public interface BasicView {
   //   Return all messages whose id is found in the given collection.
   Collection<Message> getMessages(Collection<Uuid> ids);
 
+
+  // DESCRIPTIONS IN PROGRESS
+  ServerInfo getInfo();  
+  InterestSet getInterestSet(User user);
+  void updateInterests(User user, InterestSet intSet);
 }

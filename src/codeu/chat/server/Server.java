@@ -33,6 +33,7 @@ import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
@@ -54,10 +55,10 @@ public final class Server {
   private final Timeline timeline = new Timeline();
 
   private final Map<Integer, Command> commands = new HashMap<>();
-  private Map<User, InterestSet> interestMap = new HashMap<>();
-
+  
   private final Uuid id;
   private final Secret secret;
+  private static final ServerInfo info = new ServerInfo();
 
   private final Model model = new Model();
   private final View view = new View(model);
@@ -101,7 +102,9 @@ public final class Server {
 
         final String name = Serializers.STRING.read(in);
         final User user = controller.newUser(name);
-        interestMap.put(user, new InterestSet());
+        
+        // implement an equivalent
+        // interestMap.put(user, new InterestSet());
 
         Serializers.INTEGER.write(out, NetworkCode.NEW_USER_RESPONSE);
         Serializers.nullable(User.SERIALIZER).write(out, user);
@@ -175,6 +178,41 @@ public final class Server {
       }
     });
 
+    //Get the version from server
+    this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command()
+    {
+      @Override
+      public void onMessage(InputStream in,OutputStream out) throws IOException
+      {
+        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
+        Uuid.SERIALIZER.write(out, info.version);
+      }
+    });
+
+    this.commands.put(NetworkCode.INTEREST_GET_REQUEST, new Command()
+    {
+      @Override
+      public void onMessage(InputStream in,OutputStream out) throws IOException
+      {
+        final Uuid uuid = Uuid.SERIALIZER.read(in);
+        final User user = uuidToUser(uuid);
+       
+        Serializers.INTEGER.write(out, NetworkCode.INTEREST_GET_RESPONSE);
+        InterestSet.SERIALIZER.write(out, model.getInterestSet(user)); 
+      }
+      
+      public User uuidToUser(Uuid uuid){
+        Collection<User> users = view.getUsers();
+        for (User u : users){
+          if (uuid.equals(u.id)){
+            return u;
+          }
+        }
+        return null;
+      }
+      
+    });
+
     this.timeline.scheduleNow(new Runnable() {
       @Override
       public void run() {
@@ -197,7 +235,7 @@ public final class Server {
       }
     });
   }
-
+  
   public void handleConnection(final Connection connection) {
     timeline.scheduleNow(new Runnable() {
       @Override

@@ -146,8 +146,7 @@ public final class Controller implements RawController, BasicController {
   
   @Override
   public InterestSet getInterestSet(User user){
-    // Under construction as of this commit.
-    return new InterestSet();
+    return model.getInterestSet(user);
   }
 
   private Uuid createId() {

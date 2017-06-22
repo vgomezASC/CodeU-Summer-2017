@@ -19,7 +19,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import codeu.chat.common.BasicView;
+import codeu.chat.common.InterestSet;
 import codeu.chat.common.User;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.ConnectionSource;
 
@@ -47,4 +49,17 @@ public final class Context {
     }
     return users;
   }
+  
+  public InterestSet getInterestSet(User user){
+  	return view.getInterestSet(user);
+  }
+  
+  public void updateInterests(User user, InterestSet intSet){
+    view.updateInterests(user, intSet);
+  } 
+  
+  public ServerInfo getInfo() {
+      return view.getInfo();
+  }
+  
 }

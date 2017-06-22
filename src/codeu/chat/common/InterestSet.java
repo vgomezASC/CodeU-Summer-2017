@@ -8,22 +8,54 @@
  * @version (V1.0.0 | 6.10.17)
  */
  
- package codeu.chat.client.common;
+  package codeu.chat.common;
  
- import java.util.HashSet;
+  import java.io.IOException;
+  import java.io.InputStream;
+  import java.io.OutputStream;
+  import java.util.HashSet;
  
- import codeu.chat.client.core.ConversationContext;
- import codeu.chat.client.core.MessageContext;
- import codeu.chat.common.Bookmark;
- import codeu.chat.common.User;
+  import codeu.chat.client.core.ConversationContext;
+  import codeu.chat.client.core.MessageContext;
+  import codeu.chat.common.User;
+  import codeu.chat.server.Model;
+  import codeu.chat.util.Serializer;
+  import codeu.chat.util.Serializers;
  
- public final class InterestSet{
+  public final class InterestSet{
+    public static final Serializer<InterestSet> SERIALIZER = new Serializer<InterestSet>() {
+
+      @Override
+      public void write(OutputStream out, InterestSet value) throws IOException {
+
+        Serializers.INTEGER.write(out,value.u);
+        Serializers.INTEGER.write(out,value.b);
+        Serializers.collection(User.SERIALIZER).write(out, value.users);
+        Serializers.collection(Bookmark.SERIALIZER).write(out, value.bookmarks);
+        
+      }
+
+      @Override
+      public InterestSet read(InputStream in) throws IOException {
+
+        InterestSet result = new InterestSet(
+          Serializers.INTEGER.read(in),
+          Serializers.INTEGER.read(in)
+          
+        );
+        
+        result.users.addAll(Serializers.collection(User.SERIALIZER).read(in));
+        result.bookmarks.addAll(Serializers.collection(Bookmark.SERIALIZER).read(in));
+        return result;
+      }
+   }; 
+  
    public HashSet<User> users; 
    public HashSet<Bookmark> bookmarks; 
    
    // custom sizing variables for users and bookmarks
-   private int u;
-   private int b;
+   public int u;
+   public int b;
    
    // no-args constructor for the standard size of these sets	
    public InterestSet(){
@@ -40,21 +72,23 @@
    }
    
    /** Adds a Bookmark for a new conversation to bookmarks.
-    * @param c the ConversationContext we've just started tracking*/
+    * @param c the ConversationContext we've just started tracking */
    public void addBookmark(ConversationContext c){
      bookmarks.add(new Bookmark(c));
    }
    
    // Deletes a user from users, and all the conversations they follow in bookmarks
-   // i feel like there's some O(faster) way to implement this but how
-   public void delCoolUser(User u){
+   // I feel like there's some O(faster) way to implement this but how
+   public void delCoolUser(User u, Model model){
    	 HashSet<Bookmark> trashCan = new HashSet<Bookmark>(b);
      for (Bookmark b : bookmarks){
-       boolean found = false;
-       for (MessageContext message = b.conversation.firstMessage();
-     	                   message != null; 
-     	                   message = message.next()){
-         if (message.message.author == u.id && !found){
+       boolean found = false;   
+       
+       for (Message message = b.first;
+     	            message != null; 
+     	            message = model.messageById().first(message.next)){
+     	            
+         if (message.author == u.id && !found){
      	   trashCan.add(b);
      	   found = true;
      	 }
@@ -66,4 +100,16 @@
      }
      
    }
+ 
+  public String toString() {
+    String result = "Users\n";
+    for(User u : users){
+      result += " "+u.name;
+    }
+    result += "\nBookmarks\n";
+    for(Bookmark b : bookmarks){
+      result += "\n"+b.conversation.title+": "+b.bookmark.content+"\n";
+    }
+    return result;
+  }
  }

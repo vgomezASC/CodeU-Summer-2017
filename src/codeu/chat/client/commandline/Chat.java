@@ -16,7 +16,7 @@ package codeu.chat.client.commandline;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
+import java.util.Scanner; // comment this line out for testing later
 import java.util.Stack;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +26,10 @@ import codeu.chat.client.core.Context;
 import codeu.chat.client.core.ConversationContext;
 import codeu.chat.client.core.MessageContext;
 import codeu.chat.client.core.UserContext;
+import codeu.chat.common.Bookmark;
+import codeu.chat.common.InterestSet;
+import codeu.chat.common.ServerInfo;
+import codeu.chat.common.User;
 import codeu.chat.util.Tokenizer;
 import codeu.chat.util.Uuid;
 
@@ -123,6 +127,8 @@ public final class Chat {
         System.out.println("    Add a new user with the given name.");
         System.out.println("  u-sign-in <name>");
         System.out.println("    Sign in as the user with the given name.");
+        System.out.println("  info");
+        System.out.println("    Get session information.");
         System.out.println("  exit");
         System.out.println("    Exit the program.");
       }
@@ -206,7 +212,26 @@ public final class Chat {
         return null;
       }
     });
-
+    
+    // info (Server info)
+    //
+    // Get some infomation from server; it should be version info currently
+    //
+    panel.register("info", new Panel.Command() {
+        @Override
+        public void invoke(List<String> args) {
+          final ServerInfo info = context.getInfo();
+          if (info == null) {
+            // Communicate error to user - the server did not send us a valid
+            // info object.
+            new IOException("ERROR: ServerInfo cannot be read.").printStackTrace();
+          } else {
+            //Print server info
+            System.out.println("Version:" + info.version);
+          }
+        }
+    });
+    
     // Now that the panel has all its commands registered, return the panel
     // so that it can be used.
     return panel;
@@ -417,24 +442,35 @@ public final class Chat {
     });
     
     // This commented-out feature is  a bookmark-checking test I made to help me keep
-    // track. 
+    // track. Making this work is your next step.
 
-   /* panel.register("m-check", new Panel.Command(){
-      @Override
-      public void invoke(List<String> args) {
-      	System.out.println("--- new from "+conversation.conversation.title+" ---");
-        for (MessageContext message = conversation.bookmark;
-                            message != null;
-                            message = message.next()) {
-          System.out.println();
-          System.out.format("USER : %s\n", findUsername(message.message.author));
-          System.out.format("SENT : %s\n", message.message.creation);
-          System.out.println();
-          System.out.println(message.message.content);
-          System.out.println();
-        }
-        System.out.println("---  end of conversation  ---");
-        conversation.bookmark = conversation.lastMessage();
+     panel.register("m-check", new Panel.Command(){
+     @Override
+     public void invoke(List<String> args) {
+       InterestSet interests = context.getInterestSet(conversation.user);
+       
+       // not sure why I did this but anyway have this load simulator
+       Bookmark save = new Bookmark(conversation);
+       for (Bookmark b : interests.bookmarks){
+         if (b.conversation.equals(conversation.conversation))
+           save = b;
+       }
+       
+       System.out.println("--- new from "+conversation.conversation.title+" ---");
+       
+       // next up this bluhbery
+       for (MessageContext message = conversation.getMessage(save.bookmark.next);
+                           message != null;
+                           message = message.next()) {
+         System.out.println();
+         System.out.format("USER : %s\n", findUsername(message.message.author));
+         System.out.format("SENT : %s\n", message.message.creation);
+         System.out.println();
+         System.out.println(message.message.content);
+         System.out.println();
+       }
+       System.out.println("---  end of conversation  ---");
+       save.bookmark = conversation.lastMessage().message;
       }
       
       private String findUsername(Uuid author) {
@@ -446,7 +482,7 @@ public final class Chat {
         return "Anonymous";
       }
       
-    });*/
+   }); 
 
     // M-ADD (add message)
     //
@@ -466,11 +502,36 @@ public final class Chat {
           }
         
           if (message.length() > 0) {
-            conversation.add(message);
+          	// I'll change this back after testing, unless you want to keep it this way.
+            MessageContext m = conversation.add(message);
+            InterestSet interests = context.getInterestSet(findUser(m.message.author));
+            // ^^ this is the problem line
+            boolean conversationThere = false;
+            for (Bookmark b:interests.bookmarks){
+            	if (b.conversation.equals(conversation.conversation)){
+            	  b.bookmark = m.message;
+            	  conversationThere = true;
+            	}
+            }
+            if (!conversationThere){
+              interests.bookmarks.add(new Bookmark(conversation, m.message));
+            } 
+            
+            context.updateInterests(findUser(m.message.author),interests);
+            
           } else {
             System.out.println("ERROR: Messages must contain text");
           }
         }
+      }
+      
+      private User findUser(Uuid author) {
+        for (final UserContext user : context.allUsers()) {
+          if (user.user.id.equals(author)) {
+            return user.user;
+          }
+        }
+        return null;
       }
     });
 
@@ -497,7 +558,9 @@ public final class Chat {
   private Panel createInterestPanel(final UserContext user) {
 
     final Panel panel = new Panel();
-	// print out summary of things nicely. to be implemented
+    // Something I'm working on:
+	InterestSet interests = context.getInterestSet(user.user);
+	System.out.println("interesting.");
 
     // HELP
     //
