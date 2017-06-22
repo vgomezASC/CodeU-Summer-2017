@@ -23,7 +23,6 @@ import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
-import jdk.internal.dynalink.linker.ConversionComparator;
 
 public final class Message{
   public static final Serializer<Message> SERIALIZER = new Serializer<Message>() {
