@@ -2,15 +2,15 @@ package codeu.chat.server;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
-import java.io.ObjectOutputStream;
-import java.io.RandomAccessFile;
 import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
 import java.io.FileInputStream;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.Message;
@@ -18,112 +18,72 @@ import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Uuid;
 
-public class LocalFile implements Serializable
+public class LocalFile
 {
-    private static final long serialVersionUID = 1L;
     //Instance varibles for saving the current data of server.
-    private final HashMap<Uuid,User> users;
-    private final HashMap<Uuid,ConversationHeader> conversationHeaders;
-    private final HashMap<Uuid,Message> messages;
+    private final LinkedHashSet<User> users;
+    private final LinkedHashSet<ConversationHeader> conversationHeaders;
+    private final LinkedHashSet<Message> messages;
 
-    private transient final File file;
+    private final File file;
 
-    private static final Logger.Log LOG = Logger.newLog(LocalFile.class);
+    private boolean hasUserModified = false;//It indicates if there is a new data should be handled.
+    private boolean hasMessageModified = false;
+    private boolean hasConversationModified = false;
 
-    private transient boolean hasModified = false;//It indicates if there is a new data should be handled.
-    public LocalFile(File file)
+    //false: The instance is not initialized. All new data will not mark the status as modified.
+    //true: All new data been added to this instance should mark the status as modified.
+    private boolean isInitialized = false;
+
+    public LocalFile (File file)
     {
         this.file = file;
-        LocalFile newClass;
-        HashMap<Uuid,User>tempUsers = new HashMap<>();
-        HashMap<Uuid,ConversationHeader>tempConversationHeaders= new HashMap<>();
-        HashMap<Uuid,Message>tempMessages= new HashMap<>();
-        //Deserialization
-        try(FileInputStream fileInputStream = new FileInputStream(file);
-		    ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream))
-        {
-            //Read the information to current instance
-		    newClass = (LocalFile)objectInputStream.readObject();
-            tempUsers = newClass.users;
-            tempConversationHeaders = newClass.conversationHeaders;
-            tempMessages = newClass.messages;
-        }
-        catch(IOException exception)
-        {
-            if(!file.exists())
-            {
-                System.out.println("WARNING:File doesn't exist, a new local file will be created.");
-            }
-            else
-            {
-                exception.printStackTrace();
-                System.out.println("ERROR:Unable to read data.");
-                throw new RuntimeException("ERROR:Unable to run the program. Local file cannot be read.");
-            }
-        }
-        catch(ClassNotFoundException exception)
-        {
-            System.out.println("ERROR:Failed to desrialized the local data.");
-            exception.printStackTrace();
-            throw new RuntimeException("ERROR:Unable to run the program. Local file cannot be read.");
-        }
-       //Write temporary information to the instance varibles
-       users = tempUsers;
-       conversationHeaders = tempConversationHeaders;
-       messages = tempMessages;
+        users = new LinkedHashSet<>();
+        conversationHeaders= new LinkedHashSet<>();
+        messages= new LinkedHashSet<>();
     }
-    /**
-     * Save the data into local file.
-     * 
-     * @exception   Failed to save data.
-     */
-    public void saveData() throws IOException
-    {
-        if(!hasModified)//Only save the data when the data is updated.
-        {
-            return;
-        }
 
-        if(!file.exists())
-        {
-            file.createNewFile();
-        }
-        //Serialization
-        try(FileOutputStream fileOutputStream = new FileOutputStream(file);
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream))
-        {
-         objectOutputStream.writeObject(this); 
-
-         LOG.info("Data saved!");
-        }
-        hasModified = false;
-    }
     /**
      * Get a copy of users
      * 
-     * @return  ArrayList<User> Current users from this instance
+     * @param   boolean Is the return value going to be saved? If true, the status should be updated.
+     * @return  LinkedHashSet<User> Current users from this instance
      */
-    public ArrayList<User> getCopyOfUsers()
+    public LinkedHashSet<User> getCopyOfUsers(boolean willBeSaved)
     {
-        return new ArrayList<>(users.values());
+        if(willBeSaved)
+        {
+            hasUserModified = false;
+        }
+        return new LinkedHashSet<>(users);
     }
     /**
      * Get a copy of conversations
      * 
-     * @return  ArrayList<ConversationHeader> Current conversations from this instance
+     * @param   boolean Is the return value going to be saved? If true, the status should be updated.
+     * @return  LinkedHashSet<ConversationHeader> Current conversations from this instance
      */
-    public ArrayList<ConversationHeader> getCopyOfConversationHeaders()
+    public LinkedHashSet<ConversationHeader> getCopyOfConversationHeaders(boolean willBeSaved)
     {
-        return new ArrayList<>(conversationHeaders.values());
+        if(willBeSaved)
+        {
+            hasConversationModified = false;
+        }
+        return new LinkedHashSet<>(conversationHeaders);
     }
     /**
      * Get a copy of messages
      * 
-     * @return  ArrayList<Message> Current messages from this instance
+     * @param   boolean Is the return value going to be saved? If true, the status should be updated.
+     * @return  LinkedHashSet<Message> Current messages from this instance
      */
-    public ArrayList<Message> getCopyOfMessages()
+    public LinkedHashSet<Message> getCopyOfMessages(boolean willBeSaved)
     {
-        return new ArrayList<>(messages.values());
+        if(willBeSaved)
+        {
+            hasMessageModified = false;
+        }
+        return new LinkedHashSet<>(messages);
     }
     /**
      * Add a new user to the instance
@@ -132,12 +92,11 @@ public class LocalFile implements Serializable
      */
     public void addUser(User user)
     {
-        if(users.containsKey(user.id))//If repetition happens, hasMofified should be false still.
+        users.add(user);
+        if(isInitialized)
         {
-            return;
+            hasUserModified = true;
         }
-        users.put(user.id, user);
-        hasModified = true;
     }
     /**
      * Add a new conversation to the instance.
@@ -146,12 +105,11 @@ public class LocalFile implements Serializable
      */
     public void addConversationHeader(ConversationHeader header)
     {
-        if(conversationHeaders.containsKey(header.id))
+        conversationHeaders.add(header);//If repetition happens, hasMofified should be false still.
+        if(isInitialized)
         {
-            return;
+            hasConversationModified = true;
         }
-        conversationHeaders.put(header.id, header);//If repetition happens, hasMofified should be false still.
-        hasModified = true;
     }
     /**
      * Add a new message to the instance.
@@ -160,11 +118,60 @@ public class LocalFile implements Serializable
      */
     public void addMessage(Message message)
     {
-        if(messages.containsKey(message.id))
-        {
-            return;
-        }
-       messages.put(message.id, message);//If repetition happens, hasMofified should be false still.
-       hasModified = true;
+       messages.add(message);//If repetition happens, hasMofified should be false still.
+       if(isInitialized)
+       {
+            hasMessageModified = true;
+       }
+    }
+    /**
+     * Get current path.
+     * 
+     * @return String Path of this instance
+     */
+    public String getPath()
+    {
+        return file.getPath();
+    }
+    /**
+     * Check if the User data has been modified.
+     * If this instance is not initialized, it should always return false.
+     * 
+     * @return boolean Status of the User data
+     */
+
+    public boolean hasUserModified()
+    {
+        return hasUserModified;
+    }
+
+    /**
+     * Check if the ConversationHeader data has been modified.
+     * If this instance is not initialized, it should always return false.
+     * 
+     * @return boolean Status of the ConversationHeader data
+     */
+    public boolean hasConversationModified()
+    {
+        return hasConversationModified;
+    }
+    /**
+     * Check if the Message data has been modified.
+     * If this instance is not initialized, it should always return false.
+     * 
+     * @return boolean Status of the Message data
+     */
+
+    public boolean hasMessageModified()
+    {
+        return hasMessageModified;
+    }
+    /**
+     * The initialization of this instance is complete.
+     * Then all new data been added to this instance should mark the status as modified.
+     */
+    public void finishInitialization()
+    {
+        isInitialized = true;
     }
 }
