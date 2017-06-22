@@ -17,13 +17,10 @@ package codeu.chat.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public final class Time implements Comparable<Time> ,Serializable{
-
-  private static final long serialVersionUID = 1L;
+public final class Time implements Comparable<Time>{
   
   public static final Serializer<Time> SERIALIZER = new Serializer<Time>() {
 
