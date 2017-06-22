@@ -17,7 +17,8 @@ package codeu.chat.common;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Serializable;
+import java.util.Comparator;
+import java.util.UUID;
 
 import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
@@ -25,9 +26,7 @@ import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import jdk.internal.dynalink.linker.ConversionComparator;
 
-public final class Message implements Serializable{
-
-  private static final long serialVersionUID = 1L;
+public final class Message{
   public static final Serializer<Message> SERIALIZER = new Serializer<Message>() {
 
     @Override
@@ -39,7 +38,7 @@ public final class Message implements Serializable{
       Time.SERIALIZER.write(out, value.creation);
       Uuid.SERIALIZER.write(out, value.author);
       Serializers.STRING.write(out, value.content);
-
+      Uuid.SERIALIZER.write(out, value.conversation);
     }
 
     @Override
@@ -51,7 +50,8 @@ public final class Message implements Serializable{
           Uuid.SERIALIZER.read(in),
           Time.SERIALIZER.read(in),
           Uuid.SERIALIZER.read(in),
-          Serializers.STRING.read(in)
+          Serializers.STRING.read(in),
+          Uuid.SERIALIZER.read(in)
       );
 
     }
