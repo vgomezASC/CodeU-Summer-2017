@@ -507,7 +507,6 @@ public final class Chat {
           	// I'll change this back after testing, unless you want to keep it this way.
             MessageContext m = conversation.add(message);
             InterestSet interests = context.getInterestSet(findUser(m.message.author));
-            // ^^ this is the problem line
             boolean conversationThere = false;
             for (Bookmark b:interests.bookmarks){
             	if (b.conversation.equals(conversation.conversation)){

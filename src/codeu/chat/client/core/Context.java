@@ -55,7 +55,7 @@ public final class Context {
   }
   
   public void updateInterests(User user, InterestSet intSet){
-    view.updateInterests(user, intSet);
+    controller.updateInterests(user, intSet);
   } 
   
   public ServerInfo getInfo() {

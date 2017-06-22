@@ -162,9 +162,9 @@ final class View implements BasicView {
   
   public InterestSet getInterestSet(User user) {
     try (final Connection connection = this.source.connect()) {
-      Serializers.INTEGER.write(connection.out(), NetworkCode.INTEREST_GET_REQUEST);
+      Serializers.INTEGER.write(connection.out(), NetworkCode.INTEREST_SET_REQUEST);
       User.SERIALIZER.write(connection.out(), user);
-      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.INTEREST_GET_RESPONSE) {
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.INTEREST_SET_RESPONSE) {
         final InterestSet result = InterestSet.SERIALIZER.read(connection.in());
         return result;
       } else {
@@ -179,16 +179,5 @@ final class View implements BasicView {
     // If we get here it means something went wrong and null should be returned
     return null;
   }
-  
-  public void updateInterests(User user, InterestSet intSet) {
-    try (final Connection connection = this.source.connect()){
-      Serializers.INTEGER.write(connection.out(), NetworkCode.INTEREST_SET_REQUEST);
-      User.SERIALIZER.write(connection.out(), user);
-      InterestSet.SERIALIZER.write(connection.out(), intSet);
-    } catch (Exception ex) {
-      System.out.println("ERROR: Exception during call on server. Check log for details.");
-      LOG.error(ex, "Exception during call on server.");
-    }
-    
-  } 
+   
 }

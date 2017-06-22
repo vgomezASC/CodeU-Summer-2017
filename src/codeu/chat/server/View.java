@@ -83,11 +83,6 @@ public final class View implements BasicView, SinglesView {
   }
   
   @Override
-  public void updateInterests(User user, InterestSet intSet){
-    model.updateInterests(user, intSet);
-  }
-  
-  @Override
   public User findUser(Uuid id) { return model.userById().first(id); }
 
   @Override

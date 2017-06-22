@@ -56,5 +56,5 @@ public interface BasicView {
   // DESCRIPTIONS IN PROGRESS
   ServerInfo getInfo();  
   InterestSet getInterestSet(User user);
-  void updateInterests(User user, InterestSet intSet);
+  
 }

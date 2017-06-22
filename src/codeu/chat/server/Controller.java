@@ -148,7 +148,12 @@ public final class Controller implements RawController, BasicController {
   public InterestSet getInterestSet(User user){
     return model.getInterestSet(user);
   }
-
+  
+  @Override
+  public void updateInterests(User user, InterestSet intSet){
+    model.updateInterests(user, intSet);
+  }
+  
   private Uuid createId() {
 
     Uuid candidate;

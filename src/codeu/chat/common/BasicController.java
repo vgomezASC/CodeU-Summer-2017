@@ -57,5 +57,7 @@ public interface BasicController {
   // must be provided or else the server won't apply the change. If the
   // operation is successful, the InterestSet will be accessed.
   InterestSet getInterestSet(User user);
-
+  
+  // ;)
+  void updateInterests(User user, InterestSet intSet);
 }

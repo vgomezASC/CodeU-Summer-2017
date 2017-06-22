@@ -186,7 +186,7 @@ public final class Server {
       }
     });
 
-    this.commands.put(NetworkCode.INTEREST_GET_REQUEST, new Command()
+    this.commands.put(NetworkCode.INTEREST_SET_REQUEST, new Command()
     {
       @Override
       public void onMessage(InputStream in,OutputStream out) throws IOException
@@ -194,7 +194,7 @@ public final class Server {
         final Uuid uuid = Uuid.SERIALIZER.read(in);
         final User user = uuidToUser(uuid);
        
-        Serializers.INTEGER.write(out, NetworkCode.INTEREST_GET_RESPONSE);
+        Serializers.INTEGER.write(out, NetworkCode.INTEREST_SET_RESPONSE);
         InterestSet.SERIALIZER.write(out, model.getInterestSet(user)); 
       }
       
@@ -210,7 +210,7 @@ public final class Server {
       
     });
     
-    this.commands.put(NetworkCode.INTEREST_SET_REQUEST, new Command()
+    this.commands.put(NetworkCode.INTEREST_SET_RECORD, new Command()
     {
       @Override
       public void onMessage(InputStream in,OutputStream out) throws IOException
