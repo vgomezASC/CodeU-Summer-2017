@@ -63,17 +63,6 @@ public final class Message{
   public Uuid next;
   public final Uuid conversation;
 
-  public Message(Uuid id, Uuid next, Uuid previous, Time creation, Uuid author, String content) {
-
-    this.id = id;
-    this.next = next;
-    this.previous = previous;
-    this.creation = creation;
-    this.author = author;
-    this.content = content;
-    conversation = null;
-  }
-
   public Message(Uuid id, Uuid next, Uuid previous, Time creation, Uuid author, String content,Uuid conversation) {
 
     this.id = id;
