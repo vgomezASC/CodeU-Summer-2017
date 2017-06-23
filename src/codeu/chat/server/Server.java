@@ -217,7 +217,7 @@ public final class Server {
       {
         final User user = User.SERIALIZER.read(in);
         final InterestSet intSet = InterestSet.SERIALIZER.read(in);
-        model.updateInterests(user, intSet);
+        controller.updateInterests(user, intSet);
       }
     });
 

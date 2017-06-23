@@ -69,13 +69,14 @@ public final class Model {
   private final Store<Time, Message> messageByTime = new Store<>(TIME_COMPARE);
   private final Store<String, Message> messageByText = new Store<>(STRING_COMPARE);
 
-  private HashMap<User, InterestSet> interestMap = new HashMap<User, InterestSet>(100);
+  private HashMap<Uuid, InterestSet> interestMap = new HashMap<Uuid, InterestSet>(100);
 
   public void add(User user) {
     userById.insert(user.id, user);
     userByTime.insert(user.creation, user);
     userByText.insert(user.name, user);
-    interestMap.put(user, new InterestSet());
+    interestMap.put(user.id, new InterestSet());
+    System.out.println("NEW SIZE: "+interestMap.size());
   }
 
   public StoreAccessor<Uuid, User> userById() {
@@ -132,10 +133,14 @@ public final class Model {
   }
   
   public InterestSet getInterestSet(User user){
-    System.out.println(interestMap.get(user));
-    return interestMap.get(user);
+    System.out.println(interestMap.get(user.id));
+    System.out.println("CURRENT: "+interestMap.size());
+    return interestMap.get(user.id);
   }
   public void updateInterests(User user, InterestSet intSet){
-    interestMap.replace(user, intSet);
+    System.out.println("BEFORE: "+interestMap.size());
+    interestMap.remove(user.id);
+    interestMap.put(user.id, intSet);
+    System.out.println("AFTER: "+interestMap.size());
   }
 }

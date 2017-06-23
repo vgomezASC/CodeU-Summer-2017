@@ -451,17 +451,25 @@ public final class Chat {
      public void invoke(List<String> args) {
        InterestSet interests = context.getInterestSet(conversation.user);
        
-       // not sure why I did this but anyway have this load simulator
        Bookmark save = new Bookmark(conversation);
+       System.out.println(interests.bookmarks.size());
+       
        for (Bookmark b : interests.bookmarks){
-         if (b.conversation.equals(conversation.conversation))
+         if (b.conversation.title.equals(conversation.conversation.title)){
+           // System.out.println(b.bookmark.content);
            save = b;
+           // System.out.println(save.bookmark.content);
+         } else {
+           // System.out.println("Inner loop not accessed.");
+         }
        }
        
        System.out.println("--- new from "+conversation.conversation.title+" ---");
        
        // next up this bluhbery
-       for (MessageContext message = conversation.getMessage(save.bookmark.next);
+       MessageContext msg = conversation.findMessageByUuid(save.bookmark.id);
+       //System.out.println(msg.message.content);
+       for (MessageContext message = msg.next();
                            message != null;
                            message = message.next()) {
          System.out.println();
@@ -509,7 +517,7 @@ public final class Chat {
             InterestSet interests = context.getInterestSet(findUser(m.message.author));
             boolean conversationThere = false;
             for (Bookmark b:interests.bookmarks){
-            	if (b.conversation.equals(conversation.conversation)){
+            	if (b.conversation.title.equals(conversation.conversation.title)){
             	  b.bookmark = m.message;
             	  conversationThere = true;
             	}
