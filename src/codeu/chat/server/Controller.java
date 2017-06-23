@@ -15,12 +15,9 @@
 package codeu.chat.server;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
@@ -31,8 +28,6 @@ import codeu.chat.common.RawController;
 import codeu.chat.common.User;
 import codeu.chat.server.LocalFile;
 import codeu.chat.util.Logger;
-import codeu.chat.util.Serializer;
-import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 
@@ -43,25 +38,12 @@ public final class Controller implements RawController, BasicController {
   private final Model model;
   private final Uuid.Generator uuidGenerator;
 
-  private final Serializer<Collection<Message>> localMessages = Serializers.collection(Message.SERIALIZER);
-  private final Serializer<Collection<ConversationHeader>> localConversationHeaders = Serializers.collection(ConversationHeader.SERIALIZER);
-  private final Serializer<Collection<User>> localUsers = Serializers.collection(User.SERIALIZER);
-
   private final LocalFile localFile;
-
-  private final File userFile;
-  private final File conversationFile;
-  private final File messageFile;
-
-  private boolean isInitialized = false;
 
   public Controller(Uuid serverId, Model model) {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
     this.localFile = new LocalFile(new File("."));
-    this.userFile = new File(localFile.getPath() + LocalFile.USER_FILE_NAME);
-    this.conversationFile = new File(localFile.getPath() + LocalFile.CONVERSATION_FILE_NAME);
-    this.messageFile = new File(localFile.getPath() + LocalFile.MESSAGE_FILE_NAME);
   }
   //New constructor, which can get the local file information.
   public Controller(Uuid serverId, Model model,LocalFile localFile) {
@@ -70,52 +52,24 @@ public final class Controller implements RawController, BasicController {
     
     this.localFile = localFile;//The path is assigned by server.
 
-    userFile = new File(localFile.getPath() + LocalFile.USER_FILE_NAME);
-    conversationFile = new File(localFile.getPath() + LocalFile.CONVERSATION_FILE_NAME);
-    messageFile = new File(localFile.getPath() + LocalFile.MESSAGE_FILE_NAME);
-    try
+    LinkedHashSet<User> localUsers = localFile.getUsers();
+    LinkedHashSet<ConversationHeader> localConversations = localFile.getConversationHeaders();
+    LinkedHashSet<Message> localMessages = localFile.getMessages();
+    
+    for(User item : localUsers)
     {
-      FileInputStream userInputStream = new FileInputStream(userFile);
-      if(userInputStream.available() > 0)
-      {
-       Collection<User> userData = localUsers.read(userInputStream);
-       for (User item : userData)
-       {
-         this.newUser(item.id, item.name, item.creation);
-         localFile.addUser(item);
-       }
-      }
-      
-      FileInputStream conversationInputStream = new FileInputStream(conversationFile);
-      if(conversationInputStream.available() > 0)
-      {
-        Collection<ConversationHeader> conversationData =  localConversationHeaders.read(conversationInputStream);
-        for (ConversationHeader item : conversationData)
-        {
-          this.newConversation(item.id, item.title, item.owner, item.creation);
-          localFile.addConversationHeader(item);
-        }
-      }
+      newUser(item.id, item.name, item.creation);
+    }
 
-      FileInputStream messageInputStream = new FileInputStream(messageFile);
-      if(messageInputStream.available() > 0)
-      {
-          Collection<Message> messageData = localMessages.read(messageInputStream);
-          for(Message item : messageData)
-          {
-            this.newMessage(item.id, item.author, item.conversation, item.content, item.creation);
-            localFile.addMessage(item);
-          }
-      } 
-    }
-    catch (IOException exception)
+    for(ConversationHeader item : localConversations)
     {
-      System.out.println("ERROR: Failed to read local data!");
-      exception.printStackTrace();
-      throw new RuntimeException("ERROR: Program will be terminated!"); 
+      newConversation(item.id, item.title, item.owner, item.creation);
     }
-    localFile.finishInitialization();
-    isInitialized = true;
+
+    for(Message item : localMessages)
+    {
+      newMessage(item.id, item.author, item.conversation, item.content, item.creation);
+    }
   }
 
   @Override
@@ -145,16 +99,8 @@ public final class Controller implements RawController, BasicController {
 
       message = new Message(id, Uuid.NULL, Uuid.NULL, creationTime, author, body,conversation);
       model.add(message);
-      if(isInitialized)
-      {
-        localFile.addMessage(message);
-        LOG.info("Message added: %s", message.id);
-      }
-      else
-      {
-        //If it is initializing, messages should be read from local file not added a new record.
-        LOG.info("Message read from local file: %s", message.id);
-      }
+      localFile.addMessage(message);
+      LOG.info("Message added: %s", message.id);
 
       // Find and update the previous "last" message so that it's "next" value
       // will point to the new message.
@@ -196,24 +142,12 @@ public final class Controller implements RawController, BasicController {
 
       user = new User(id, name, creationTime);
       model.add(user);
-      if(isInitialized)
-      {
-        localFile.addUser(user);
-        LOG.info(
-            "newUser success (user.id=%s user.name=%s user.time=%s)",
-            id,
-            name,
-            creationTime);
-      }
-      else
-      {
-        //If it is initializing, users should be read from local file not added a new record.
-        LOG.info(
-            "User is read from local file successfully. (user.id=%s user.name=%s user.time=%s)",
-            id,
-            name,
-            creationTime);
-      }
+      localFile.addUser(user);
+      LOG.info(
+          "newUser success (user.id=%s user.name=%s user.time=%s)",
+          id,
+          name,
+          creationTime);
 
     } else {
 
@@ -237,16 +171,8 @@ public final class Controller implements RawController, BasicController {
     if (foundOwner != null && isIdFree(id)) {
       conversation = new ConversationHeader(id, owner, creationTime, title);
       model.add(conversation);
-      if(isInitialized)
-      {
-        localFile.addConversationHeader(conversation);
-        LOG.info("Conversation added: " + id);
-      }
-      else
-      {
-        //If it is initializing, conversations should be read from local file not added a new record.
-        LOG.info("Conversation read from local file", id);
-      }
+      localFile.addConversationHeader(conversation);
+      LOG.info("Conversation added: " + id);
     }
 
     return conversation;
