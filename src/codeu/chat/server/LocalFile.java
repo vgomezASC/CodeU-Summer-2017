@@ -40,10 +40,6 @@ public class LocalFile
     private boolean hasMessageModified = false;
     private boolean hasConversationModified = false;
 
-    //false: The instance is not initialized. All new data will not mark the status as modified.
-    //true: All new data been added to this instance should mark the status as modified.
-    private boolean isInitialized = false;
-
     private final Serializer<Collection<Message>> localMessages = Serializers.collection(Message.SERIALIZER);
     private final Serializer<Collection<ConversationHeader>> localConversationHeaders = Serializers.collection(ConversationHeader.SERIALIZER);
     private final Serializer<Collection<User>> localUsers = Serializers.collection(User.SERIALIZER);
@@ -82,37 +78,72 @@ public class LocalFile
             exception.printStackTrace();
             throw new RuntimeException();
         }
+
+        try(FileInputStream userInputStream = new FileInputStream(userFile);
+            FileInputStream conversationInputStream = new FileInputStream(conversationFile);
+            FileInputStream messageInputStream = new FileInputStream(messageFile);)
+        {
+            if(userInputStream.available() > 0)
+            {
+                Collection<User> userData = localUsers.read(userInputStream);
+                for (User item : userData)
+                {
+                    users.add(item);
+                }
+            }
+            
+            if(conversationInputStream.available() > 0)
+            {
+                Collection<ConversationHeader> conversationData =  localConversationHeaders.read(conversationInputStream);
+                for (ConversationHeader item : conversationData)
+                {
+                    conversationHeaders.add(item);
+                }
+            }
+
+            if(messageInputStream.available() > 0)
+            {
+                Collection<Message> messageData = localMessages.read(messageInputStream);
+                for(Message item : messageData)
+                {
+                    messages.add(item);
+                }
+            } 
+        }
+        catch (IOException exception)
+        {
+        System.out.println("ERROR: Failed to read local data!");
+        exception.printStackTrace();
+        throw new RuntimeException("ERROR: Program will be terminated!"); 
+        }
     }
 
     /**
-     * Get a copy of users
+     * Get users
      * 
      * @return  LinkedHashSet<User> Current users from this instance
      */
-    public LinkedHashSet<User> getCopyOfUsers()
+    public LinkedHashSet<User> getUsers()
     {
-        hasUserModified = false;
-        return new LinkedHashSet<>(users);
+        return new LinkedHashSet<User>(users);
     }
     /**
-     * Get a copy of conversations
+     * Get conversations
      * 
      * @return  LinkedHashSet<ConversationHeader> Current conversations from this instance
      */
-    public LinkedHashSet<ConversationHeader> getCopyOfConversationHeaders()
+    public LinkedHashSet<ConversationHeader> getConversationHeaders()
     {
-        hasConversationModified = false;
-        return new LinkedHashSet<>(conversationHeaders);
+        return new LinkedHashSet<ConversationHeader>(conversationHeaders);
     }
     /**
-     * Get a copy of messages
+     * Get messages
      * 
      * @return  LinkedHashSet<Message> Current messages from this instance
      */
-    public LinkedHashSet<Message> getCopyOfMessages()
+    public LinkedHashSet<Message> getMessages()
     {
-        hasMessageModified = false;
-        return new LinkedHashSet<>(messages);
+        return new LinkedHashSet<Message>(messages);
     }
     /**
      * Add a new user to the instance
@@ -126,10 +157,7 @@ public class LocalFile
             return;
         }
         users.add(user);
-        if(isInitialized)
-        {
-            hasUserModified = true;
-        }
+        hasUserModified = true;
     }
     /**
      * Add a new conversation to the instance.
@@ -143,10 +171,7 @@ public class LocalFile
             return;
         }
         conversationHeaders.add(header);//If repetition happens, hasMofified should be false still.
-        if(isInitialized)
-        {
-            hasConversationModified = true;
-        }
+        hasConversationModified = true;
     }
     /**
      * Add a new message to the instance.
@@ -160,10 +185,7 @@ public class LocalFile
            return;
        }
        messages.add(message);//If repetition happens, hasMofified should be false still.
-       if(isInitialized)
-       {
-            hasMessageModified = true;
-       }
+       hasMessageModified = true;
     }
     /**
      * Get current path.
@@ -175,16 +197,7 @@ public class LocalFile
         return file.getPath();
     }
 
-    /**
-     * The initialization of this instance is complete.
-     * Then all new data been added to this instance should mark the status as modified.
-     */
-    public void finishInitialization()
-    {
-        isInitialized = true;
-    }
-
-    /**
+   /**
    * Save user data
    * @throws IOException
    */
