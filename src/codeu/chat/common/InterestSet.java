@@ -77,30 +77,6 @@
      bookmarks.add(new Bookmark(c));
    }
    
-   // Deletes a user from users, and all the conversations they follow in bookmarks
-   // I feel like there's some O(faster) way to implement this but how
-   public void delCoolUser(User u, Model model){
-   	 HashSet<Bookmark> trashCan = new HashSet<Bookmark>(b);
-     for (Bookmark b : bookmarks){
-       boolean found = false;   
-       
-       for (Message message = b.first;
-     	            message != null; 
-     	            message = model.messageById().first(message.next)){
-     	            
-         if (message.author == u.id && !found){
-     	   trashCan.add(b);
-     	   found = true;
-     	 }
-       } 
-     }
-     
-     for (Bookmark b: trashCan){
-       bookmarks.remove(b);
-     }
-     
-   }
- 
   public String toString() {
     String result = "Users\n";
     for(User u : users){

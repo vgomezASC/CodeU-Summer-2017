@@ -142,5 +142,6 @@ public final class Model {
     interestMap.remove(user.id);
     interestMap.put(user.id, intSet);
     System.out.println("AFTER: "+interestMap.size());
+    System.out.println(interestMap.get(user.id));
   }
 }
