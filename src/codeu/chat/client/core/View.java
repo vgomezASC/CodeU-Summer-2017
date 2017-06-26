@@ -162,19 +162,3 @@ final class View implements BasicView {
     return null;
 }
 }
-
-  public ServerInfo getInfo() {
-    try (final Connection connection = source.connection()) {
-      Serializers.INTEGER.write(connection.out(), NetworkCode.SERVER_INFO_REQUEST);
-      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.SERVER_INFO_RESPONSE) {
-        final Time startTime = Time.SERIALIZER.read(connection.in());
-        return new ServerInfo(startTime);
-      } else {
-        System.out.println("The server did not respond with the type of response we expected")
-      }
-    } catch (Exception ex) {
-      System.out.println("Something went wrong with the connection")
-    }
-    // If we get here it means something went wrong and null should be returned
-    return null;
-  }
