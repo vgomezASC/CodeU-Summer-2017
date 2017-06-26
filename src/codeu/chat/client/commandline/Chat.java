@@ -31,6 +31,8 @@ import codeu.chat.common.Bookmark;
 import codeu.chat.common.InterestSet;
 import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
+import codeu.chat.util.Mergesort;
+import codeu.chat.util.Time;
 import codeu.chat.util.Tokenizer;
 import codeu.chat.util.Uuid;
 
@@ -166,7 +168,9 @@ public final class Chat {
           final String name = args.get(0);
           args.remove(0);
           if (name.length() > 0) {
-            if (context.create(name) == null) {
+            if (findUser(name) != null) {
+              System.out.println("ERROR: Username already taken");
+            } else if (context.create(name) == null) {
               System.out.println("ERROR: Failed to create new user");
             }
           } else {
@@ -190,7 +194,7 @@ public final class Chat {
           final String name = args.get(0);
           args.remove(0);
           if (name.length() > 0) {
-            final UserContext user = findUser(name);
+            final UserContext user = findUserLogin(name);
             if (user == null) {
               System.out.format("ERROR: Failed to sign in as '%s'\n", name);
             } else {
@@ -204,7 +208,7 @@ public final class Chat {
 
       // Find the first user with the given name and return a user context
       // for that user. If no user is found, the function will return null.
-      private UserContext findUser(String name) {
+      private UserContext findUserLogin(String name) {
         for (final UserContext user : context.allUsers()) {
           if (user.user.name.equals(name)) {
             return user;
@@ -299,11 +303,15 @@ public final class Chat {
           final String name = args.get(0);
           args.remove(0);
           if (name.length() > 0) {
-            final ConversationContext conversation = user.start(name);
-            if (conversation == null) {
-              System.out.println("ERROR: Failed to create new conversation");
+            if (findConversation(name, user) != null){
+              System.out.println("ERROR: Chat name already taken");
             } else {
-              panels.push(createConversationPanel(conversation));
+              final ConversationContext conversation = user.start(name);
+              if (conversation == null) {
+                System.out.println("ERROR: Failed to create new conversation");
+              } else {
+                panels.push(createConversationPanel(conversation));
+              }
             }
           } else {
             System.out.println("ERROR: Missing <title>");
@@ -397,8 +405,6 @@ public final class Chat {
         System.out.println("    List all messages in the current conversation.");
         System.out.println("  m-add <message>");
         System.out.println("    Add a new message to the current conversation as the current user.");
-        System.out.println("  status-update");
-        System.out.println("    Get updates on the interests you're following.");
         System.out.println("  info");
         System.out.println("    Display all info about the current conversation.");
         System.out.println("  back");
@@ -479,17 +485,6 @@ public final class Chat {
       }
     });
 
-    // STATUS-UPDATE (retrieve new interesting messages)
-	//
-	// While on the user panel, add a command to retrieve new messages from users and
-	// conversations the current user is following. This will generate an interest panel.
-	panel.register("status-update", new Panel.Command(){
-	  @Override
-	  public void invoke(List<String> args){
-	    panels.push(createInterestPanel(user));
-	  }
-	});
-
     // INFO
     //
     // Add a command to print info about the current conversation when the user
@@ -515,15 +510,80 @@ public final class Chat {
     final Panel panel = new Panel();
     
     InterestSet interests = context.getInterestSet(user.user);
-	System.out.println("updates:");
-	int updates = 0;
-	for (Bookmark b : interests.bookmarks){
-	  ConversationContext conversation = findConversation(b.conversation.title, user);
-	  if (!conversation.findMessageByUuid(b.bookmark.id).equals(conversation.lastMessage())){
-	    System.out.println("--- new from "+conversation.conversation.title+" ---");
+    int updates = 0;
+    
+    ArrayList<Bookmark> display = new ArrayList<Bookmark>();
+    ArrayList<Time> unsorted = new ArrayList<Time>();
+    
+    for (User u : interests.users){
+      HashSet<ConversationContext> newSet = conversationsOfUser(u,user);
+      
+      for(ConversationContext c : newSet){
+        boolean isCopy = false;
+        for(Bookmark b : interests.bookmarks){
+          if(b.conversation.title.equals(c.conversation.title))
+          	isCopy = true;
+        }
+        if(!isCopy){
+          unsorted.add(c.conversation.creation);
+          display.add(new Bookmark(c));
+          interests.bookmarks.add(new Bookmark(c));
+        }
+          
+        }
+       }
        
-       MessageContext msg = conversation.findMessageByUuid(b.bookmark.id);
-       for (MessageContext message = msg.next();
+    for(Bookmark b : display){
+    	ConversationContext c = findConversation(b.conversation.title, user);
+        System.out.println("--- new conversation "+c.conversation.title+" from "+findUsername(c.conversation.owner)+" ---");
+          if(c.firstMessage() != null){
+            for (MessageContext message = c.firstMessage();
+                           message != null;
+                           message = message.next()) {
+              System.out.println();
+              System.out.format("USER : %s\n", findUsername(message.message.author));
+              System.out.format("SENT : %s\n", message.message.creation);
+              System.out.println();
+              System.out.println(message.message.content);
+              System.out.println();
+              updates++;
+            }
+            System.out.println("---  end of conversation  ---\n");
+          } else {
+            System.out.println("---  go start that conversation!  ---\n");
+          }
+        } 
+    
+    ArrayList<Bookmark> mainDisplay = new ArrayList<Bookmark>();
+    unsorted = new ArrayList<Time>();
+	System.out.println("updates:");
+		
+    for (Bookmark b : interests.bookmarks){
+	  ConversationContext conversation = findConversation(b.conversation.title, user);
+	  if (!hasConversation(b, display) && conversation.lastMessage() != null && (b.bookmark == null || !conversation.findMessageByUuid(b.bookmark.id).equals(conversation.lastMessage()))){
+	    unsorted.add(conversation.lastMessage().message.creation);
+	    mainDisplay.add(b);
+	  }
+	}  
+	
+	/*if (unsorted.size() > 0){
+	  Mergesort merge = new Mergesort();
+      mainDisplay = merge.sort(unsorted, mainDisplay);
+    }*/
+	
+	for (Bookmark b : mainDisplay){
+	   ConversationContext conversation = findConversation(b.conversation.title, user);
+	   System.out.println("--- new from "+conversation.conversation.title+" ---");
+       
+       MessageContext msg;
+       
+       if (b.bookmark == null) {
+         msg = conversation.firstMessage();
+       } else {
+         msg = conversation.findMessageByUuid(b.bookmark.id).next();
+       }
+       
+       for (MessageContext message = msg;
                            message != null;
                            message = message.next()) {
          System.out.println();
@@ -534,11 +594,9 @@ public final class Chat {
          System.out.println();
          updates++;
        }
-       System.out.println("---  end of conversation  ---");
+       System.out.println("---  end of conversation  ---\n");
        b.bookmark = conversation.lastMessage().message;
-	  } else {
-	    System.out.println("--- no updates from "+b.conversation.title+" ---");
-	  }
+	  
 	}
 	System.out.println(updates+" new messages.");
     context.updateInterests(user.user, interests);
@@ -556,6 +614,8 @@ public final class Chat {
         System.out.println("    Add an interest.");
         System.out.println("  s-del <title>");
         System.out.println("    Delete an interest.");
+        System.out.println("  s-list");
+        System.out.println("    View current interests.");
         System.out.println("  back");
         System.out.println("    Go back to ROOT MODE.");
         System.out.println("  exit");
@@ -586,7 +646,7 @@ public final class Chat {
           	  interests.users.add(userResult);
           	
           	// is there an O(faster) way of doing this? less comparisons?
-          	HashSet<ConversationContext> addSet = conversationsOfUser(userResult);
+          	HashSet<ConversationContext> addSet = conversationsOfUser(userResult, user);
           	for(ConversationContext c : addSet){
           	  boolean isCopy = false;
           	  for(Bookmark b : interests.bookmarks){
@@ -602,15 +662,6 @@ public final class Chat {
           }
         
         }
-      }
-      
-      private User findUser(String name) {
-        for (final UserContext user : context.allUsers()) {
-          if (user.user.name.equals(name)) {
-            return user.user;
-          }
-        }
-        return null;
       }
       
       private boolean hasConversation(String name, InterestSet intSet){
@@ -638,29 +689,6 @@ public final class Chat {
           }
         }
         return null;
-      }
-      
-      private HashSet<ConversationContext> conversationsOfUser(User friend){
-        HashSet<ConversationContext> resultSet = new HashSet<ConversationContext>(50);
-        for (final ConversationContext conversation : user.conversations()) {
-          boolean detected = false;
-          if (conversation.conversation.owner.equals(friend.id)) {
-            resultSet.add(conversation);
-            detected = true;
-          }
-          if (!detected && conversation.firstMessage() != null){
-            for (MessageContext message = conversation.firstMessage();
-                     			message != null;
-                     			message = message.next()){
-            
-              if(!detected && message.message.author.equals(friend.id)){
-                resultSet.add(conversation);
-                detected = true;
-              }
-            }
-          }
-        }
-        return resultSet;
       }
       
     });
@@ -706,14 +734,6 @@ public final class Chat {
         
         }
       }
-      private User findUser(String name) {
-        for (final UserContext user : context.allUsers()) {
-          if (user.user.name.equals(name)) {
-            return user.user;
-          }
-        }
-        return null;
-      }
       
       private User hasUser(String name, InterestSet intSet){
         for (User u : intSet.users){
@@ -742,13 +762,12 @@ public final class Chat {
         return null;
       }
       
-      // we'll return to this
       private HashSet<Bookmark> conversationsOfUser(User trash){
         HashSet<Bookmark> trashCan = new HashSet<Bookmark>(50);
         InterestSet interests = context.getInterestSet(user.user);
         for (Bookmark b : interests.bookmarks) {
           boolean detected = false;
-          if (b.bookmark.author.equals(trash.id)) {
+          if (b.bookmark != null && b.bookmark.author.equals(trash.id)) {
             trashCan.add(b);
             detected = true;
           }
@@ -770,15 +789,65 @@ public final class Chat {
       
     });
     
+    //
+    // S-VIEW
+    //    
+    // Prints a list of the user's interests.
+    panel.register("s-list", new Panel.Command(){
+      @Override
+      public void invoke(List<String> args) {
+        InterestSet interestSet = context.getInterestSet(user.user);
+        System.out.println(interestSet.toString());
+      }
+    });
+    
       return panel;
   }
+  
+private boolean hasConversation(Bookmark b, ArrayList<Bookmark> display){
+  for (Bookmark viewed : display){
+    if (viewed.conversation.title.equals(b.conversation.title))
+      return true;
+  }
+  return false;
+}
 
+private HashSet<ConversationContext> conversationsOfUser(User friend, UserContext self){
+        HashSet<ConversationContext> resultSet = new HashSet<ConversationContext>(50);
+        for (final ConversationContext conversation : self.conversations()) {
+          boolean detected = false;
+          if (conversation.conversation.owner.equals(friend.id)) {
+            resultSet.add(conversation);
+            detected = true;
+          }
+          if (!detected && conversation.firstMessage() != null){
+            for (MessageContext message = conversation.firstMessage();
+                     			message != null;
+                     			message = message.next()){
+            
+              if(!detected && message.message.author.equals(friend.id)){
+                resultSet.add(conversation);
+                detected = true;
+              }
+            }
+          }
+        }
+        return resultSet;
+      }
 
-// I should be able to get away with this. If so, more methods will be like this.
 private ConversationContext findConversation(String name, UserContext user) {
         for (final ConversationContext conversation : user.conversations()) {
           if (conversation.conversation.title.equals(name)) {
             return conversation;
+          }
+        }
+        return null;
+      }
+
+private User findUser(String name) {
+        for (final UserContext user : context.allUsers()) {
+          if (user.user.name.equals(name)) {
+            return user.user;
           }
         }
         return null;
@@ -792,4 +861,4 @@ private String findUsername(Uuid author) {
         }
         return "Anonymous";
       }
-}
+ }

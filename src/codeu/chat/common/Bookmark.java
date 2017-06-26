@@ -1,13 +1,9 @@
 /**
  * Retains the last message a user saw of a certain conversation, 
  * marking their place like a bookmark.
- *
- * This class is unfinished and a tad messy, so if you have questions/feedback, don't be
- * shy! Also right now this doesn't really have any methods but we'll add them as we go 
- * along.
  * 
  * @author (Sarah Abowitz) 
- * @version (V1.0.0 | 6.10.17)
+ * @version (V1.0.6 | 6.25.17)
  */
   
 package codeu.chat.common;
@@ -53,8 +49,13 @@ import java.io.OutputStream;
  	
  	public Bookmark(ConversationContext c){
  		conversation = c.conversation;
- 		first = c.firstMessage().message;
- 		bookmark = c.lastMessage().message;
+ 		try {
+ 		  first = c.firstMessage().message;
+ 		  bookmark = c.lastMessage().message;
+ 		} catch (NullPointerException e) {
+ 		  bookmark = null;
+ 		  first = null;
+ 		}
  	}
  	
  	public Bookmark(ConversationContext c, Message m){

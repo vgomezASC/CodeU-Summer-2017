@@ -84,7 +84,12 @@
     }
     result += "\nBookmarks\n";
     for(Bookmark b : bookmarks){
-      result += "\n"+b.conversation.title+": "+b.bookmark.content+"\n";
+      result += "\n"+b.conversation.title+": ";
+      if (b.bookmark != null){
+        result += " "+b.bookmark.content+"\n";
+      } else {
+        result += "<NULL MARKER>";
+      }
     }
     return result;
   }
