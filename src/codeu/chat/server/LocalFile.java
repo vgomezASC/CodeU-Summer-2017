@@ -201,12 +201,10 @@ public class LocalFile
    * Save user data
    * @throws IOException
    */
-  private FileOutputStream saveUsers() throws IOException
+  private void saveUsers() throws IOException
   {
-    FileOutputStream userStream = null;
-    try
+    try(FileOutputStream userStream = new FileOutputStream(userFile))
     {
-      userStream = new FileOutputStream(userFile);
       localUsers.write(userStream, users);
     }
     catch(FileNotFoundException exception)
@@ -221,18 +219,15 @@ public class LocalFile
       exception.printStackTrace();
       throw exception;
     }
-    return userStream;
   }
   /**
    * Save conversation data
    * @throws IOException
    */
-  private FileOutputStream saveConversationHeaders() throws IOException
+  private void saveConversationHeaders() throws IOException
   {
-    FileOutputStream conversationStream = null;
-    try
+    try(FileOutputStream conversationStream = new FileOutputStream(conversationFile))
     {
-      conversationStream = new FileOutputStream(conversationFile);
       localConversationHeaders.write(conversationStream, conversationHeaders);
     }
     catch (FileNotFoundException exception)
@@ -247,18 +242,15 @@ public class LocalFile
       exception.printStackTrace();
       throw exception;
     }
-    return conversationStream;
   }
   /**
    * Save message data
    * @throws IOException
    */
-  private FileOutputStream saveMessages() throws IOException
+  private void saveMessages() throws IOException
   {
-    FileOutputStream messageStream = null;
-    try
+    try(FileOutputStream messageStream = new FileOutputStream(messageFile))
     {
-      messageStream = new FileOutputStream(messageFile);
       localMessages.write(messageStream, messages);
     }
     catch (FileNotFoundException exception)
@@ -273,7 +265,6 @@ public class LocalFile
       exception.printStackTrace();
       throw exception;
     }
-    return messageStream;
   }
   /**
    * Save all data
