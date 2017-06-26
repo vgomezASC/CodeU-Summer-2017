@@ -27,7 +27,7 @@ import codeu.chat.util.connections.ConnectionSource;
 
 public final class Context {
 
-  private final BasicView view;
+  private final View view;
   private final Controller controller;
 
   public Context(ConnectionSource source) {
@@ -58,8 +58,11 @@ public final class Context {
     controller.updateInterests(id, intSet);
   } 
   
+  /**
+   * Get the info of the server; version info should be returned currently.
+   * @return The infomation of the server. If fails, null will be returned.
+   */
   public ServerInfo getInfo() {
       return view.getInfo();
   }
-  
 }

@@ -27,6 +27,7 @@ import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
@@ -140,7 +141,11 @@ final class View implements BasicView {
 
     return messages;
   }
-  
+  /**
+   * Get the info of the server; version info should be returned currently.
+   * @return The infomation of the server. If fails, null will be returned.
+   */
+  @Override
   public ServerInfo getInfo() {
     try (final Connection connection = this.source.connect()) {
       Serializers.INTEGER.write(connection.out(), NetworkCode.SERVER_INFO_REQUEST);
