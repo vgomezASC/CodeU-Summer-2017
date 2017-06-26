@@ -56,8 +56,8 @@ public interface BasicController {
   // Get a User's InterestSet as allotted by the server. All parameters
   // must be provided or else the server won't apply the change. If the
   // operation is successful, the InterestSet will be accessed.
-  InterestSet getInterestSet(User user);
+  InterestSet getInterestSet(Uuid id);
   
-  // ;)
-  void updateInterests(User user, InterestSet intSet);
+  // ??
+  void updateInterests(Uuid id, InterestSet intSet);
 }

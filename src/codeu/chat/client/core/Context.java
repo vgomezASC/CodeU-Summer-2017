@@ -50,12 +50,12 @@ public final class Context {
     return users;
   }
   
-  public InterestSet getInterestSet(User user){
-  	return view.getInterestSet(user);
+  public InterestSet getInterestSet(Uuid id){
+  	return view.getInterestSet(id);
   }
   
-  public void updateInterests(User user, InterestSet intSet){
-    controller.updateInterests(user, intSet);
+  public void updateInterests(Uuid id, InterestSet intSet){
+    controller.updateInterests(id, intSet);
   } 
   
   public ServerInfo getInfo() {

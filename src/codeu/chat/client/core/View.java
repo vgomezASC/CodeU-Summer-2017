@@ -160,10 +160,10 @@ final class View implements BasicView {
     return null;
   }
   
-  public InterestSet getInterestSet(User user) {
+  public InterestSet getInterestSet(Uuid id) {
     try (final Connection connection = this.source.connect()) {
       Serializers.INTEGER.write(connection.out(), NetworkCode.INTEREST_SET_REQUEST);
-      User.SERIALIZER.write(connection.out(), user);
+      Uuid.SERIALIZER.write(connection.out(), id);
       if (Serializers.INTEGER.read(connection.in()) == NetworkCode.INTEREST_SET_RESPONSE) {
         final InterestSet result = InterestSet.SERIALIZER.read(connection.in());
         return result;

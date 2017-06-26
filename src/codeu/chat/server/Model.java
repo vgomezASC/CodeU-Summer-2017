@@ -132,16 +132,16 @@ public final class Model {
     return messageByText;
   }
   
-  public InterestSet getInterestSet(User user){
-    System.out.println(interestMap.get(user.id));
+  public InterestSet getInterestSet(Uuid id){
+    System.out.println(interestMap.get(id));
     System.out.println("CURRENT: "+interestMap.size());
-    return interestMap.get(user.id);
+    return interestMap.get(id);
   }
-  public void updateInterests(User user, InterestSet intSet){
+  public void updateInterests(Uuid id, InterestSet intSet){
     System.out.println("BEFORE: "+interestMap.size());
-    interestMap.remove(user.id);
-    interestMap.put(user.id, intSet);
+    interestMap.remove(id);
+    interestMap.put(id, intSet);
     System.out.println("AFTER: "+interestMap.size());
-    System.out.println(interestMap.get(user.id));
+    System.out.println(interestMap.get(id));
   }
 }

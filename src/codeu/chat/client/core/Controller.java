@@ -115,15 +115,13 @@ final class Controller implements BasicController {
     return response;
   }
   
-  // idk if we'll keep using this v
   @Override
-  public InterestSet getInterestSet(User user){
+  public InterestSet getInterestSet(Uuid id){
     InterestSet interestSet = null;
     try (final Connection connection = source.connect()){
       
       Serializers.INTEGER.write(connection.out(), NetworkCode.INTEREST_SET_REQUEST);
-      Serializers.STRING.write(connection.out(), user.name);
-      // not sure if I'll need uuid here, we'll see
+      Uuid.SERIALIZER.write(connection.out(), id);
       
       if (Serializers.INTEGER.read(connection.in()) == NetworkCode.INTEREST_SET_RESPONSE) {
         interestSet = Serializers.nullable(InterestSet.SERIALIZER).read(connection.in());
@@ -139,10 +137,10 @@ final class Controller implements BasicController {
   }  
   
   @Override
-  public void updateInterests(User user, InterestSet intSet) {
+  public void updateInterests(Uuid id, InterestSet intSet) {
     try (final Connection connection = this.source.connect()){
       Serializers.INTEGER.write(connection.out(), NetworkCode.INTEREST_SET_RECORD);
-      User.SERIALIZER.write(connection.out(), user);
+      Uuid.SERIALIZER.write(connection.out(), id);
       InterestSet.SERIALIZER.write(connection.out(), intSet);
     } catch (Exception ex) {
       System.out.println("ERROR: Exception during call on server. Check log for details.");

@@ -44,7 +44,7 @@ public final class UserContext {
   }
 
   public InterestSet getInterestSet() {
-  	return controller.getInterestSet(user);
+  	return controller.getInterestSet(user.id);
   }
 
   public Iterable<ConversationContext> conversations() {

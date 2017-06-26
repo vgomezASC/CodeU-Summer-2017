@@ -191,21 +191,10 @@ public final class Server {
       @Override
       public void onMessage(InputStream in,OutputStream out) throws IOException
       {
-        final Uuid uuid = Uuid.SERIALIZER.read(in);
-        final User user = uuidToUser(uuid);
+        final Uuid id = Uuid.SERIALIZER.read(in);
        
         Serializers.INTEGER.write(out, NetworkCode.INTEREST_SET_RESPONSE);
-        InterestSet.SERIALIZER.write(out, model.getInterestSet(user)); 
-      }
-      
-      public User uuidToUser(Uuid uuid){
-        Collection<User> users = view.getUsers();
-        for (User u : users){
-          if (uuid.equals(u.id)){
-            return u;
-          }
-        }
-        return null;
+        InterestSet.SERIALIZER.write(out, model.getInterestSet(id)); 
       }
       
     });
@@ -215,9 +204,9 @@ public final class Server {
       @Override
       public void onMessage(InputStream in,OutputStream out) throws IOException
       {
-        final User user = User.SERIALIZER.read(in);
+        final Uuid id = Uuid.SERIALIZER.read(in);
         final InterestSet intSet = InterestSet.SERIALIZER.read(in);
-        controller.updateInterests(user, intSet);
+        controller.updateInterests(id, intSet);
       }
     });
 

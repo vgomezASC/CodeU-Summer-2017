@@ -55,6 +55,10 @@ public interface BasicView {
 
   // DESCRIPTIONS IN PROGRESS
   ServerInfo getInfo();  
-  InterestSet getInterestSet(User user);
+  
+  // GET INTEREST SET
+  //
+  //   Access a certain user's InterestSet.
+  InterestSet getInterestSet(Uuid id);
   
 }

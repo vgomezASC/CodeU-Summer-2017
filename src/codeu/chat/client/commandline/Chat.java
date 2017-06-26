@@ -512,7 +512,7 @@ public final class Chat {
 
     final Panel panel = new Panel();
     
-    InterestSet interests = context.getInterestSet(user.user);
+    InterestSet interests = context.getInterestSet(user.user.id);
     int updates = 0;
     
     ArrayList<Bookmark> display = new ArrayList<Bookmark>();
@@ -612,7 +612,7 @@ public final class Chat {
 	   
 	}
 	System.out.println(updates+" new messages.");
-    context.updateInterests(user.user, interests);
+    context.updateInterests(user.user.id, interests);
     
     // HELP
     //
@@ -647,13 +647,13 @@ public final class Chat {
         if (args.size()<1) {
       	  System.out.println("ERROR: No user or chat given.");
       	} else {
-      	  InterestSet interests = context.getInterestSet(user.user);
+      	  InterestSet interests = context.getInterestSet(user.user.id);
           User userResult = findUser(args.get(0));
       	  ConversationContext chatResult = findConversation(args.get(0));
       	  if(chatResult != null){
             if(!hasConversation(args.get(0), interests))   	  
       	      interests.bookmarks.add(new Bookmark(chatResult));
-            context.updateInterests(user.user,interests);            
+            context.updateInterests(user.user.id,interests);            
           } else if(userResult != null){
           	if (!hasUser(args.get(0), interests))
           	  interests.users.add(userResult);
@@ -669,7 +669,7 @@ public final class Chat {
           	  if(!isCopy)
           	  interests.bookmarks.add(new Bookmark(c));
           	} 
-          	context.updateInterests(user.user,interests);
+          	context.updateInterests(user.user.id,interests);
           }else {
             System.out.println("ERROR: No valid user or chat given.");
           }
@@ -717,13 +717,13 @@ public final class Chat {
         if (args.size()<1) {
       	  System.out.println("ERROR: No user or chat given.");
       	} else {
-      	  InterestSet interests = context.getInterestSet(user.user);
+      	  InterestSet interests = context.getInterestSet(user.user.id);
       	  User userResult = findUser(args.get(0));
       	  ConversationContext chatResult = findConversation(args.get(0));
       	  if(chatResult != null){
       	    if(findBookmark(args.get(0), interests) != null)
       	      interests.bookmarks.remove(findBookmark(args.get(0), interests));
-            context.updateInterests(user.user,interests);
+            context.updateInterests(user.user.id,interests);
           } else if(userResult != null){
           	if (hasUser(args.get(0), interests) != null)
           	  interests.users.remove(hasUser(args.get(0), interests));
@@ -740,7 +740,7 @@ public final class Chat {
           	    interests.bookmarks.remove(scrap);
           	  }
           	}
-            context.updateInterests(user.user,interests);
+            context.updateInterests(user.user.id,interests);
           } else {
             System.out.println("ERROR: No valid user or chat given.");
           }
@@ -777,7 +777,7 @@ public final class Chat {
       
       private HashSet<Bookmark> conversationsOfUser(User trash){
         HashSet<Bookmark> trashCan = new HashSet<Bookmark>(50);
-        InterestSet interests = context.getInterestSet(user.user);
+        InterestSet interests = context.getInterestSet(user.user.id);
         for (Bookmark b : interests.bookmarks) {
           boolean detected = false;
           if (b.bookmark != null && b.bookmark.author.equals(trash.id)) {
@@ -809,7 +809,7 @@ public final class Chat {
     panel.register("s-list", new Panel.Command(){
       @Override
       public void invoke(List<String> args) {
-        InterestSet interestSet = context.getInterestSet(user.user);
+        InterestSet interestSet = context.getInterestSet(user.user.id);
         System.out.println(interestSet.toString());
       }
     });

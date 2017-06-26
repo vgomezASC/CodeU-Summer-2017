@@ -78,8 +78,8 @@ public final class View implements BasicView, SinglesView {
   }  
   
   @Override
-  public InterestSet getInterestSet(User user){
-    return model.getInterestSet(user);
+  public InterestSet getInterestSet(Uuid id){
+    return model.getInterestSet(id);
   }
   
   @Override
