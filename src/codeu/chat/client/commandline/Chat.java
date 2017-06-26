@@ -71,6 +71,7 @@ public final class Chat {
       System.out.println("ERROR! IOException caught.");
       e.printStackTrace();
     }
+    if (args.size() > 0){
     final String command = args.get(0);    
     args.remove(0);
 
@@ -98,6 +99,8 @@ public final class Chat {
     // so we should let the user know. Still return true as we want to continue
     // processing future commands.
     System.out.println("ERROR: Unsupported command");
+    return true;
+    }
     return true;
   }
 
@@ -521,9 +524,13 @@ public final class Chat {
       for(ConversationContext c : newSet){
         boolean isCopy = false;
         for(Bookmark b : interests.bookmarks){
-          if(b.conversation.title.equals(c.conversation.title))
-          	isCopy = true;
+          if(!isCopy){
+            if(b.conversation.title.equals(c.conversation.title)){
+          	  isCopy = true;
+            }
+          }
         }
+        
         if(!isCopy){
           unsorted.add(c.conversation.creation);
           display.add(new Bookmark(c));
@@ -532,6 +539,12 @@ public final class Chat {
           
         }
        }
+       
+    if (unsorted.size() > 0){
+	  Mergesort merge = new Mergesort();
+      display = merge.sort(unsorted, display);
+    }
+       
        
     for(Bookmark b : display){
     	ConversationContext c = findConversation(b.conversation.title, user);
@@ -556,7 +569,7 @@ public final class Chat {
     
     ArrayList<Bookmark> mainDisplay = new ArrayList<Bookmark>();
     unsorted = new ArrayList<Time>();
-	System.out.println("uppdates:");
+	System.out.println("updates:");
 		
     for (Bookmark b : interests.bookmarks){
 	  ConversationContext conversation = findConversation(b.conversation.title, user);
@@ -573,16 +586,15 @@ public final class Chat {
 	
 	for (Bookmark b : mainDisplay){
 	   ConversationContext conversation = findConversation(b.conversation.title, user);
-	   System.out.println("--- new from "+conversation.conversation.title+" ---");
-       
-       MessageContext msg;
-       
+	   MessageContext msg;
+	   
        if (b.bookmark == null) {
          msg = conversation.firstMessage();
        } else {
          msg = conversation.findMessageByUuid(b.bookmark.id).next();
        }
        
+       System.out.println("--- new from "+conversation.conversation.title+" ---");
        for (MessageContext message = msg;
                            message != null;
                            message = message.next()) {
@@ -595,8 +607,9 @@ public final class Chat {
          updates++;
        }
        System.out.println("---  end of conversation  ---\n");
+       
        b.bookmark = conversation.lastMessage().message;
-	  
+	   
 	}
 	System.out.println(updates+" new messages.");
     context.updateInterests(user.user, interests);

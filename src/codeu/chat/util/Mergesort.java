@@ -26,31 +26,30 @@ public class Mergesort {
     times = values;
     bookmarks = marks;
     number = values.size();
-    timeHelper = new ArrayList<Time>(number);
-    for(int i = 0; i <= number; i++){
-      timeHelper.set(i,values.get(i));
-    }
+    timeHelper = new ArrayList<Time>(times);
+    int j = 0;
     properSequence = new ArrayList<Bookmark>(number);
     
     Collections.sort(times);
     orderBookmarks();
-    //reverse();
+    Collections.reverse(properSequence);
     return properSequence;
   }
   
+  private Time getValue(int j){
+    return times.get(j);
+  }
+  
   private void orderBookmarks(){
-    for(int i = 0; i<= number; i++){
-      int j = timeHelper.indexOf(times.get(i));
-      properSequence.add(bookmarks.get(j));
+    for(int i = 0; i< times.size(); i++){
+      orderBookmarksHelper(times.get(i));
     }
   }
-    
-  private void reverse() {
-    properSequence.clear();
-    
-    for(int i = number-1; i>=0; i--){
-     properSequence.add(bookmarks.get(i));
-    }
+  
+  private void orderBookmarksHelper(Time t){
+    int j = timeHelper.indexOf(t);
+    properSequence.add(bookmarks.get(j));
   }
+   
 }
  
