@@ -1,7 +1,6 @@
 
 # CODEU CHAT SERVER | README
 
-
 ## DISCLAIMER
 
 CODEU is a program created by Google to develop the skills of future software
