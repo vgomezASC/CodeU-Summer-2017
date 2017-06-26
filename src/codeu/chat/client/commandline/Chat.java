@@ -556,7 +556,7 @@ public final class Chat {
     
     ArrayList<Bookmark> mainDisplay = new ArrayList<Bookmark>();
     unsorted = new ArrayList<Time>();
-	System.out.println("updates:");
+	System.out.println("uppdates:");
 		
     for (Bookmark b : interests.bookmarks){
 	  ConversationContext conversation = findConversation(b.conversation.title, user);
@@ -566,10 +566,10 @@ public final class Chat {
 	  }
 	}  
 	
-	/*if (unsorted.size() > 0){
+	if (unsorted.size() > 0){
 	  Mergesort merge = new Mergesort();
       mainDisplay = merge.sort(unsorted, mainDisplay);
-    }*/
+    }
 	
 	for (Bookmark b : mainDisplay){
 	   ConversationContext conversation = findConversation(b.conversation.title, user);

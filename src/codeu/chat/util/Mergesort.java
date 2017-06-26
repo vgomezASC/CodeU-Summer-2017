@@ -11,12 +11,13 @@ import codeu.chat.common.Bookmark;
 import codeu.chat.util.Time;
  
 import java.util.ArrayList;
+import java.util.Collections;
  
 public class Mergesort {
   private ArrayList<Time> times;
   private ArrayList<Time> timeHelper;
   private ArrayList<Bookmark> bookmarks;
-  private ArrayList<Bookmark> bookmarkHelper;
+  private ArrayList<Bookmark> properSequence;
   private int number;
   
   public Mergesort() {}
@@ -26,58 +27,29 @@ public class Mergesort {
     bookmarks = marks;
     number = values.size();
     timeHelper = new ArrayList<Time>(number);
-    bookmarkHelper = new ArrayList<Bookmark>(number);
+    for(int i = 0; i <= number; i++){
+      timeHelper.set(i,values.get(i));
+    }
+    properSequence = new ArrayList<Bookmark>(number);
     
-    mergesort(0, number-1);
-    reverse();
-    return bookmarkHelper;
+    Collections.sort(times);
+    orderBookmarks();
+    //reverse();
+    return properSequence;
   }
   
-  private void mergesort(int low, int high){
-    if (low < high){
-      int middle = low + (high-low)/2;
-      mergesort(low, middle);
-      mergesort(middle+1, high);
-      merge(low, middle, high);
+  private void orderBookmarks(){
+    for(int i = 0; i<= number; i++){
+      int j = timeHelper.indexOf(times.get(i));
+      properSequence.add(bookmarks.get(j));
     }
   }
-  
-  private void merge(int low, int middle, int high){
-    for(int i = low; i <= high; i++){
-      timeHelper.set(i, times.get(i));
-      bookmarkHelper.set(i, bookmarks.get(i));
-    }
     
-    int i = low;
-    int j = middle + 1;
-    int k = low;
-    
-    while(i <= middle && j <= high){
-      if(timeHelper.get(i).compareTo(timeHelper.get(j)) < 0){
-        times.set(k, timeHelper.get(i));
-        bookmarks.set(k, bookmarkHelper.get(i));
-        i++;
-      } else {
-        times.set(k, timeHelper.get(j));
-        bookmarks.set(k, bookmarkHelper.get(j));
-        j++;
-      }
-      k++;
-    }
-    
-    while(i <= middle){
-      times.set(k, timeHelper.get(i));
-      bookmarks.set(k, bookmarkHelper.get(i));
-      k++;
-      i++;
-    }
-  }
-  
   private void reverse() {
-    bookmarkHelper.clear();
+    properSequence.clear();
     
     for(int i = number-1; i>=0; i--){
-     bookmarkHelper.add(bookmarks.get(i));
+     properSequence.add(bookmarks.get(i));
     }
   }
 }
