@@ -20,8 +20,8 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public final class Time implements Comparable<Time> {
-
+public final class Time implements Comparable<Time>{
+  
   public static final Serializer<Time> SERIALIZER = new Serializer<Time>() {
 
     @Override

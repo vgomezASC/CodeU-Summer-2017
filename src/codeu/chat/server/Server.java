@@ -15,6 +15,7 @@
 
 package codeu.chat.server;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -33,6 +34,7 @@ import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
 import codeu.chat.common.User;
+import codeu.chat.server.LocalFile;
 import codeu.chat.common.ServerInfo;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
@@ -46,11 +48,10 @@ public final class Server {
     void onMessage(InputStream in, OutputStream out) throws IOException;
   }
 
-  private static final ServerInfo info = new ServerInfo();
-
   private static final Logger.Log LOG = Logger.newLog(Server.class);
 
   private static final int RELAY_REFRESH_MS = 5000;  // 5 seconds
+  private static final int LOCAL_FILE_REFRESH_MS = 1000;
 
   private final Timeline timeline = new Timeline();
 
@@ -66,11 +67,16 @@ public final class Server {
   private final Relay relay;
   private Uuid lastSeen = Uuid.NULL;
 
-  public Server(final Uuid id, final Secret secret, final Relay relay) {
+  private final File file;
+  private final LocalFile localFile;
+  //One extra is added to this constructor, which can get the path information from user.
+  public Server(final Uuid id, final Secret secret, final Relay relay,final File localFilePath) {
 
     this.id = id;
     this.secret = secret;
-    this.controller = new Controller(id, model);
+    this.file = localFilePath;
+    this.localFile = new LocalFile(new File(file.getPath()));//file path is given by user
+    this.controller = new Controller(id, model,localFile);//Use the new constructor to create this new controller.
     this.relay = relay;
 
     // New Message - A client wants to add a new message to the back end.
@@ -180,7 +186,7 @@ public final class Server {
       public void onMessage(InputStream in,OutputStream out) throws IOException
       {
         Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
-        Uuid.SERIALIZER.write(out, info.version);
+        Uuid.SERIALIZER.write(out, view.getInfo().version);
       }
     });
 
@@ -203,6 +209,26 @@ public final class Server {
         }
 
         timeline.scheduleIn(RELAY_REFRESH_MS, this);
+      }
+    });
+    //Save the data periodically
+    this.timeline.scheduleNow(new Runnable() {
+      @Override
+      public void run() 
+      {
+        try
+        {
+          localFile.saveData();
+        }
+        catch(IOException exception)
+        {
+          System.out.println("ERROR:Failed to store file!");
+          exception.printStackTrace();
+        }
+        finally
+        {
+          timeline.scheduleIn(LOCAL_FILE_REFRESH_MS, this);
+        }
       }
     });
   }

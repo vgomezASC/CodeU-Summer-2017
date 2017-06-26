@@ -23,8 +23,8 @@ import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 
-public final class ConversationHeader {
-
+public final class ConversationHeader{
+  
   public static final Serializer<ConversationHeader> SERIALIZER = new Serializer<ConversationHeader>() {
 
     @Override
