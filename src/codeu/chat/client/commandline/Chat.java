@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Scanner; // comment this line out for testing later
+import java.util.Scanner; 
 import java.util.Stack;
 
 import java.util.ArrayList;
@@ -144,24 +144,6 @@ public final class Chat {
         System.out.println("  exit");
         System.out.println("    Exit the program.");       
       }
-    });
-    // info (Server info)
-    //
-    // Get some infomation from server; it should be version info currently
-    //
-    panel.register("info", new Panel.Command() {
-        @Override
-        public void invoke(List<String> args) {
-          final ServerInfo info = context.getInfo();
-          if (info == null) {
-            // Communicate error to user - the server did not send us a valid
-            // info object.
-            new IOException("ERROR: ServerInfo cannot be read.").printStackTrace();
-          } else {
-            //Print server info
-            System.out.println("Version:" + info.version);
-          }
-        }
     });
     // U-LIST (user list)
     //
@@ -592,31 +574,36 @@ public final class Chat {
     
     ArrayList<Bookmark> mainDisplay = new ArrayList<Bookmark>();
     unsorted = new ArrayList<Time>();
-	System.out.println("updates:");
+    System.out.println("updates:");
 		
     for (Bookmark b : interests.bookmarks){
-	  ConversationContext conversation = findConversation(b.conversation.title, user);
-	  if (!hasConversation(b, display) && conversation.lastMessage() != null && (b.bookmark == null || !conversation.findMessageByUuid(b.bookmark.id).equals(conversation.lastMessage()))){
-	    unsorted.add(conversation.lastMessage().message.creation);
-	    mainDisplay.add(b);
-	  }
-	}  
+      ConversationContext conversation = findConversation(b.conversation.title, user);
+      if (!hasConversation(b, display) && conversation.lastMessage() != null && (b.bookmark == null || !conversation.findMessageByUuid(b.bookmark.id).equals(conversation.lastMessage()))){
+	unsorted.add(conversation.lastMessage().message.creation);
+	mainDisplay.add(b);
+      }
+    }  
 	
-	if (unsorted.size() > 0){
-	  Mergesort merge = new Mergesort();
+    if (unsorted.size() > 0){
+      Mergesort merge = new Mergesort();
       mainDisplay = merge.sort(unsorted, mainDisplay);
     }
 	
-	for (Bookmark b : mainDisplay){
-	   ConversationContext conversation = findConversation(b.conversation.title, user);
-	   MessageContext msg;
-	   
-       if (b.bookmark == null) {
-         msg = conversation.firstMessage();
-       } else {
-         msg = conversation.findMessageByUuid(b.bookmark.id).next();
-       }
-       
+    for (Bookmark b : mainDisplay){
+      ConversationContext conversation = findConversation(b.conversation.title, user);
+      MessageContext msg;
+
+      // If the bookmark was taken before the chat was started, this display loop will 
+      // replay the whole chat. Otherwise, the first message printed is the one directly
+      // after the bookmark.
+      if (b.bookmark == null) {
+        msg = conversation.firstMessage();
+      } else {
+        msg = conversation.findMessageByUuid(b.bookmark.id).next();
+      }
+      
+      updates = displayMessages(msg, conversation, updates);
+      //private int displayMessages(msg, conversation, updates) 
        System.out.println("--- new from "+conversation.conversation.title+" ---");
        for (MessageContext message = msg;
                            message != null;
@@ -630,7 +617,8 @@ public final class Chat {
          updates++;
        }
        System.out.println("---  end of conversation  ---\n");
-       
+       // return updates;
+	    
        b.bookmark = conversation.lastMessage().message;
 	   
 	}
