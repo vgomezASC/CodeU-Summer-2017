@@ -45,7 +45,7 @@ public final class Chat {
   private final Stack<Panel> panels = new Stack<>();
 
   public Chat(Context context) {
-
+    this.panels.push(createRootPanel(context));
   }
 
   // HANDLE COMMAND
