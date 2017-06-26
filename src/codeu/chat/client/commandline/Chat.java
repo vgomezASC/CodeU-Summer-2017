@@ -46,7 +46,6 @@ public final class Chat {
 
   public Chat(Context context) {
     this.panels.push(createRootPanel(context));
-    System.out.println("UpTime:" + info.upTime);
   }
 
   // HANDLE COMMAND
@@ -148,6 +147,7 @@ public final class Chat {
           } else {
             //Print server info
             System.out.println("Version:" + info.version);
+            System.out.println("UpTime:" + info.upTime);
           }
         }
     });
