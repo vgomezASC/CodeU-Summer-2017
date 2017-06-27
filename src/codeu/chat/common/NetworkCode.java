@@ -37,12 +37,8 @@ public final class NetworkCode {
       RELAY_WRITE_REQUEST = 29,
       RELAY_WRITE_RESPONSE = 30,
       SERVER_INFO_REQUEST = 31,
-<<<<<<< HEAD
       SERVER_INFO_RESPONSE = 32,
       INTEREST_SET_REQUEST = 33,
       INTEREST_SET_RESPONSE = 34,
       INTEREST_SET_RECORD = 35;
-=======
-      SERVER_INFO_RESPONSE = 32;
->>>>>>> e0a24a36d31b1c14a086576bcf5588f941a822c9
 }

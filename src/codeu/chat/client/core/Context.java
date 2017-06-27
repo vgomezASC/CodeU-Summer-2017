@@ -49,7 +49,6 @@ public final class Context {
     }
     return users;
   }
-<<<<<<< HEAD
   
   public InterestSet getInterestSet(Uuid id){
   	return view.getInterestSet(id);
@@ -59,8 +58,6 @@ public final class Context {
     controller.updateInterests(id, intSet);
   } 
   
-=======
->>>>>>> e0a24a36d31b1c14a086576bcf5588f941a822c9
   /**
    * Get the info of the server; version info should be returned currently.
    * @return The infomation of the server. If fails, null will be returned.

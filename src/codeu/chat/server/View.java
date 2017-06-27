@@ -47,8 +47,6 @@ public final class View implements BasicView, SinglesView {
   private final Model model;
   private final static ServerInfo info = new ServerInfo();
 
-  private final static ServerInfo info = new ServerInfo();
-
   public View(Model model) {
     this.model = model;
   }
@@ -131,16 +129,4 @@ public final class View implements BasicView, SinglesView {
     return found;
   }
 
-<<<<<<< HEAD
-=======
-/**
-   * Get the info of the server; version info should be returned currently.
-   * @return The infomation of the server. If fails, null will be returned.
-   */
-  @Override
-  public ServerInfo getInfo() 
-  {
-    return info;
-  }
->>>>>>> e0a24a36d31b1c14a086576bcf5588f941a822c9
 }
