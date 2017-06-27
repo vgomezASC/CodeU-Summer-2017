@@ -82,7 +82,6 @@ public final class View implements BasicView, SinglesView {
   public Message findMessage(Uuid id) { return model.messageById().first(id); }
     
   @Override
-  public ServerInfo getInfo() { return info; }
     
   private static <S,T> Collection<T> all(StoreAccessor<S,T> store) {
 
