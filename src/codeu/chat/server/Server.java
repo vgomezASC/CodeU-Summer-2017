@@ -182,17 +182,6 @@ public final class Server {
         Serializers.collection(Message.SERIALIZER).write(out, messages);
       }
     });
-    //Get the version from server
-    this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command()
-    {
-      @Override
-      public void onMessage(InputStream in,OutputStream out) throws IOException
-      {
-        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
-        Uuid.SERIALIZER.write(out, view.getInfo().version);
-      }
-    });
-<<<<<<< HEAD
 
     //Get the version from server
     this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command()
@@ -228,8 +217,6 @@ public final class Server {
         controller.updateInterests(id, intSet);
       }
     });
-=======
->>>>>>> e0a24a36d31b1c14a086576bcf5588f941a822c9
 
     this.timeline.scheduleNow(new Runnable() {
       @Override
