@@ -181,6 +181,7 @@ public final class Server {
       {
         Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
         Uuid.SERIALIZER.write(out, info.version);
+        Time.SERIALIZER.write(out, view.getInfo().startTime);
       }
     });
 

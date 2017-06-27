@@ -1,6 +1,7 @@
 package codeu.chat.common;
 
 import java.io.IOException;
+import codeu.chat.util.Time;
 
 import codeu.chat.util.Uuid;
 public final class ServerInfo {
@@ -26,5 +27,11 @@ public final class ServerInfo {
   public ServerInfo(Uuid version, Time startTime) {
     this.version = version;
     this.startTime = startTime;
+  }
+  
+  public String upTime() {
+    long endTime = System.currentTimeMillis();
+    long totalTime = endTime - startTime.inMs();
+    return ""+totalTime + " ms"; 
   }
 }

@@ -147,7 +147,7 @@ public final class Chat {
           } else {
             //Print server info
             System.out.println("Version:" + info.version);
-            System.out.println("UpTime:" + info.upTime);
+            System.out.println("UpTime:" + info.upTime()); 
           }
         }
     });

@@ -148,7 +148,8 @@ final class View implements BasicView {
       Serializers.INTEGER.write(connection.out(), NetworkCode.SERVER_INFO_REQUEST);
       if (Serializers.INTEGER.read(connection.in()) == NetworkCode.SERVER_INFO_RESPONSE) {
         final Uuid version = Uuid.SERIALIZER.read(connection.in());
-        return new ServerInfo(version);
+        final Time startTime = Time.SERIALIZER.read(connection.in());
+        return new ServerInfo(version, startTime);
       } else {
         // Communicate this error - the server did not respond with the type of
         // response we expected.
