@@ -13,14 +13,14 @@ import codeu.chat.util.Time;
 import java.util.ArrayList;
 import java.util.Collections;
  
-public class Mergesort {
+public class Sort {
   private ArrayList<Time> times;
   private ArrayList<Time> timeHelper;
   private ArrayList<Bookmark> bookmarks;
   private ArrayList<Bookmark> properSequence;
   private int number;
   
-  public Mergesort() {}
+  public Sort() {}
   
   public ArrayList<Bookmark> sort(ArrayList<Time> values, ArrayList<Bookmark> marks){
     times = values;

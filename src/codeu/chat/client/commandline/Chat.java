@@ -14,14 +14,17 @@
 
 package codeu.chat.client.commandline;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Scanner; // comment this line out for testing later
+import java.util.Scanner; 
 import java.util.Stack;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.io.IOException;
+
 
 import codeu.chat.client.core.Context;
 import codeu.chat.client.core.ConversationContext;
@@ -31,10 +34,12 @@ import codeu.chat.common.Bookmark;
 import codeu.chat.common.InterestSet;
 import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
-import codeu.chat.util.Mergesort;
+import codeu.chat.util.Sort;
 import codeu.chat.util.Time;
 import codeu.chat.util.Tokenizer;
 import codeu.chat.util.Uuid;
+
+import codeu.chat.common.ServerInfo;
 
 public final class Chat {
 
@@ -60,6 +65,7 @@ public final class Chat {
   // the system wants to exit, the function will return false.
   //
   public boolean handleCommand(String line) {
+
     final List<String> args = new ArrayList<>();
     final Tokenizer tokenizer = new Tokenizer(line);
     
@@ -136,10 +142,9 @@ public final class Chat {
         System.out.println("  info");
         System.out.println("    Get session information.");
         System.out.println("  exit");
-        System.out.println("    Exit the program.");
+        System.out.println("    Exit the program.");       
       }
     });
-
     // U-LIST (user list)
     //
     // Add a command to print all users registered on the server when the user
@@ -439,17 +444,6 @@ public final class Chat {
         System.out.println("---  end of conversation  ---");
       }
       
-      // Find the user with the given UUID and return their username.
-      // If no user has the given UUID this will return "Anonymous".
-      private String findUsername(Uuid author) {
-        for (final UserContext user : context.allUsers()) {
-          if (user.user.id.equals(author)) {
-            return user.user.name;
-          }
-        }
-        return "Anonymous";
-      }
-      
     });
     
 
@@ -471,21 +465,13 @@ public final class Chat {
           }
         
           if (message.length() > 0) {
-          	MessageContext m = conversation.add(message);
+          	conversation.add(message);
           } else {
             System.out.println("ERROR: Messages must contain text");
           }
         }
       }
       
-      private User findUser(Uuid author) {
-        for (final UserContext user : context.allUsers()) {
-          if (user.user.id.equals(author)) {
-            return user.user;
-          }
-        }
-        return null;
-      }
     });
 
     // INFO
@@ -525,7 +511,7 @@ public final class Chat {
         boolean isCopy = false;
         for(Bookmark b : interests.bookmarks){
           if(!isCopy){
-            if(b.conversation.title.equals(c.conversation.title)){
+            if(b.conversation.id.equals(c.conversation.id)){
           	  isCopy = true;
             }
           }
@@ -541,8 +527,8 @@ public final class Chat {
        }
        
     if (unsorted.size() > 0){
-	  Mergesort merge = new Mergesort();
-      display = merge.sort(unsorted, display);
+	  Sort sorter = new Sort();
+      display = sorter.sort(unsorted, display);
     }
        
        
@@ -550,18 +536,8 @@ public final class Chat {
     	ConversationContext c = findConversation(b.conversation.title, user);
         System.out.println("--- new conversation "+c.conversation.title+" from "+findUsername(c.conversation.owner)+" ---");
           if(c.firstMessage() != null){
-            for (MessageContext message = c.firstMessage();
-                           message != null;
-                           message = message.next()) {
-              System.out.println();
-              System.out.format("USER : %s\n", findUsername(message.message.author));
-              System.out.format("SENT : %s\n", message.message.creation);
-              System.out.println();
-              System.out.println(message.message.content);
-              System.out.println();
-              updates++;
-            }
-            System.out.println("---  end of conversation  ---\n");
+            updates += displayMessages(c.firstMessage(), c,"");
+              
           } else {
             System.out.println("---  go start that conversation!  ---\n");
           }
@@ -569,46 +545,37 @@ public final class Chat {
     
     ArrayList<Bookmark> mainDisplay = new ArrayList<Bookmark>();
     unsorted = new ArrayList<Time>();
-	System.out.println("updates:");
+    System.out.println("updates:");
 		
     for (Bookmark b : interests.bookmarks){
-	  ConversationContext conversation = findConversation(b.conversation.title, user);
-	  if (!hasConversation(b, display) && conversation.lastMessage() != null && (b.bookmark == null || !conversation.findMessageByUuid(b.bookmark.id).equals(conversation.lastMessage()))){
+      ConversationContext conversation = findConversation(b.conversation.title, user);
+      if (!hasConversation(b, display) && conversation.lastMessage() != null && (b.bookmark == null || !conversation.lastMessage().message.equals(b.bookmark))){
 	    unsorted.add(conversation.lastMessage().message.creation);
 	    mainDisplay.add(b);
-	  }
-	}  
+      }
+    }  
 	
-	if (unsorted.size() > 0){
-	  Mergesort merge = new Mergesort();
-      mainDisplay = merge.sort(unsorted, mainDisplay);
+    if (unsorted.size() > 0){
+      Sort sorter = new Sort();
+      mainDisplay = sorter.sort(unsorted, mainDisplay);
     }
 	
-	for (Bookmark b : mainDisplay){
-	   ConversationContext conversation = findConversation(b.conversation.title, user);
-	   MessageContext msg;
-	   
-       if (b.bookmark == null) {
-         msg = conversation.firstMessage();
-       } else {
-         msg = conversation.findMessageByUuid(b.bookmark.id).next();
-       }
-       
-       System.out.println("--- new from "+conversation.conversation.title+" ---");
-       for (MessageContext message = msg;
-                           message != null;
-                           message = message.next()) {
-         System.out.println();
-         System.out.format("USER : %s\n", findUsername(message.message.author));
-         System.out.format("SENT : %s\n", message.message.creation);
-         System.out.println();
-         System.out.println(message.message.content);
-         System.out.println();
-         updates++;
-       }
-       System.out.println("---  end of conversation  ---\n");
-       
-       b.bookmark = conversation.lastMessage().message;
+    for (Bookmark b : mainDisplay){
+      ConversationContext conversation = findConversation(b.conversation.title, user);
+      MessageContext msg;
+
+      // If the bookmark was taken before the chat was started, this display loop will 
+      // replay the whole chat. Otherwise, the first message printed is the one directly
+      // after the bookmark.
+      if (b.bookmark == null) {
+        msg = conversation.firstMessage();
+      } else {
+        msg = conversation.findMessageByUuid(b.bookmark.id).next();
+      }
+         String leading = "--- new from "+conversation.conversation.title+" ---";
+         updates += displayMessages(msg, conversation, leading);
+        
+      b.bookmark = conversation.lastMessage().message;
 	   
 	}
 	System.out.println(updates+" new messages.");
@@ -847,6 +814,28 @@ private HashSet<ConversationContext> conversationsOfUser(User friend, UserContex
         }
         return resultSet;
       }
+
+private int displayMessages(MessageContext msg, ConversationContext conversation, String leading) {
+       int updates = 0;
+       for (MessageContext message = msg;
+                           message != null;
+                           message = message.next()) {
+         
+         if(updates == 0)
+           System.out.println(leading);
+         System.out.println();
+         System.out.format("USER : %s\n", findUsername(message.message.author));
+         System.out.format("SENT : %s\n", message.message.creation);
+         System.out.println();
+         System.out.println(message.message.content);
+         System.out.println();
+         updates++;
+       }
+       if (updates > 0)
+         System.out.println("---  end of conversation  ---\n");
+      
+       return updates;
+}
 
 private ConversationContext findConversation(String name, UserContext user) {
         for (final ConversationContext conversation : user.conversations()) {

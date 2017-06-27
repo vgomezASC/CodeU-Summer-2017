@@ -28,8 +28,6 @@
       @Override
       public void write(OutputStream out, InterestSet value) throws IOException {
 
-        Serializers.INTEGER.write(out,value.u);
-        Serializers.INTEGER.write(out,value.b);
         Serializers.collection(User.SERIALIZER).write(out, value.users);
         Serializers.collection(Bookmark.SERIALIZER).write(out, value.bookmarks);
         
@@ -38,11 +36,7 @@
       @Override
       public InterestSet read(InputStream in) throws IOException {
 
-        InterestSet result = new InterestSet(
-          Serializers.INTEGER.read(in),
-          Serializers.INTEGER.read(in)
-          
-        );
+        InterestSet result = new InterestSet();
         
         result.users.addAll(Serializers.collection(User.SERIALIZER).read(in));
         result.bookmarks.addAll(Serializers.collection(Bookmark.SERIALIZER).read(in));
@@ -53,22 +47,9 @@
    public HashSet<User> users; 
    public HashSet<Bookmark> bookmarks; 
    
-   // custom sizing variables for users and bookmarks
-   public int u;
-   public int b;
-   
-   // no-args constructor for the standard size of these sets	
    public InterestSet(){
-   	 u = 100;
-   	 b = 100;
- 	 users = new HashSet<User>(100);
- 	 bookmarks = new HashSet<Bookmark>(100); 	
-   }
-   
-   // this constructor allows custom sizings for the sets	
-   public InterestSet(int u, int b){
-     users = new HashSet<User>(u);
- 	 bookmarks = new HashSet<Bookmark>(b);
+   	 users = new HashSet<User>();
+ 	 bookmarks = new HashSet<Bookmark>(); 	
    }
    
    /** Adds a Bookmark for a new conversation to bookmarks.
@@ -76,7 +57,8 @@
    public void addBookmark(ConversationContext c){
      bookmarks.add(new Bookmark(c));
    }
-   
+  
+  @Override 
   public String toString() {
     String result = "Users\n";
     for(User u : users){

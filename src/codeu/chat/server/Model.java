@@ -23,6 +23,7 @@ import codeu.chat.common.InterestSet;
 import codeu.chat.common.LinearUuidGenerator;
 import codeu.chat.common.Message;
 import codeu.chat.common.User;
+import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.store.Store;
@@ -52,7 +53,9 @@ public final class Model {
       return a.compareTo(b);
     }
   };
-
+  
+  private final static Logger.Log LOG = Logger.newLog(Model.class);
+  
   private static final Comparator<String> STRING_COMPARE = String.CASE_INSENSITIVE_ORDER;
 
   private final Store<Uuid, User> userById = new Store<>(UUID_COMPARE);
@@ -69,14 +72,14 @@ public final class Model {
   private final Store<Time, Message> messageByTime = new Store<>(TIME_COMPARE);
   private final Store<String, Message> messageByText = new Store<>(STRING_COMPARE);
 
-  private HashMap<Uuid, InterestSet> interestMap = new HashMap<Uuid, InterestSet>(100);
+  private HashMap<Uuid, InterestSet> interestMap = new HashMap<Uuid, InterestSet>();
 
   public void add(User user) {
     userById.insert(user.id, user);
     userByTime.insert(user.creation, user);
     userByText.insert(user.name, user);
     interestMap.put(user.id, new InterestSet());
-    System.out.println("NEW SIZE: "+interestMap.size());
+    LOG.info("NEW SIZE: "+interestMap.size());
   }
 
   public StoreAccessor<Uuid, User> userById() {
@@ -133,15 +136,14 @@ public final class Model {
   }
   
   public InterestSet getInterestSet(Uuid id){
-    System.out.println(interestMap.get(id));
-    System.out.println("CURRENT: "+interestMap.size());
+    LOG.info(interestMap.get(id).toString());
+    LOG.info("CURRENT: "+interestMap.size());
     return interestMap.get(id);
   }
   public void updateInterests(Uuid id, InterestSet intSet){
-    System.out.println("BEFORE: "+interestMap.size());
-    interestMap.remove(id);
+    LOG.info("BEFORE: "+interestMap.size());
     interestMap.put(id, intSet);
-    System.out.println("AFTER: "+interestMap.size());
-    System.out.println(interestMap.get(id));
+    LOG.info("AFTER: "+interestMap.size());
+    LOG.info(interestMap.get(id).toString());
   }
 }
