@@ -22,8 +22,10 @@ import java.util.Collection;
 import codeu.chat.common.BasicView;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
+import codeu.chat.common.InterestSet;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
 import codeu.chat.common.ServerInfo;
 import codeu.chat.util.Logger;
@@ -143,6 +145,7 @@ final class View implements BasicView {
    * Get the info of the server; version info should be returned currently.
    * @return The infomation of the server. If fails, null will be returned.
    */
+  @Override
   public ServerInfo getInfo() {
     try (final Connection connection = this.source.connect()) {
       Serializers.INTEGER.write(connection.out(), NetworkCode.SERVER_INFO_REQUEST);
@@ -153,13 +156,35 @@ final class View implements BasicView {
       } else {
         // Communicate this error - the server did not respond with the type of
         // response we expected.
-        new IOException("ERROR: The server did not respond with the type of response we expected.").printStackTrace();
+
+        new IOException("ERROR: Unexpected server response type.").printStackTrace();
       }
     } catch (Exception ex) {
       // Communicate this error - something went wrong with the connection.
-      new UnexpectedException("FATAL ERROR: Unexpected error occurs, something went wrong while client was trying to connect to server.").printStackTrace();
+      new UnexpectedException("ERROR: Unexpected connection error while client tried to connect to server.").printStackTrace();
     }
     // If we get here it means something went wrong and null should be returned
     return null;
-}
+  }
+  
+  public InterestSet getInterestSet(Uuid id) {
+    try (final Connection connection = this.source.connect()) {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.INTEREST_SET_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), id);
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.INTEREST_SET_RESPONSE) {
+        final InterestSet result = InterestSet.SERIALIZER.read(connection.in());
+        return result;
+      } else {
+        // Communicate this error - the server did not respond with the type of
+        // response we expected.
+        new IOException("ERROR: Unexpected server response type.").printStackTrace();
+      }
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+    }
+    // If we get here it means something went wrong and null should be returned
+    return null;
+  }
+   
 }

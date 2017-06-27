@@ -9,6 +9,7 @@ public final class ServerInfo {
     
   public final Time startTime;
   public final Uuid version;
+
   public ServerInfo(){
       this.startTime = Time.now();
       Uuid temp = null;

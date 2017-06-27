@@ -23,8 +23,8 @@ import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 
-public final class User {
-
+public final class User{
+  
   public static final Serializer<User> SERIALIZER = new Serializer<User>() {
 
     @Override
@@ -59,4 +59,20 @@ public final class User {
     this.creation = creation;
 
   }
+  
+  @Override
+  public boolean equals(Object other) {
+    if (this == other) {return true;}
+    if ((other == null)|| (!(other instanceof User))) {
+      return false;
+    }
+    
+    User proxy = (User) other;
+    
+    return (this.id.equals(proxy.id) && this.creation.equals(proxy.creation) && this.name.equals(proxy.name));
+  }
+  
+  @Override
+  public int hashCode() { return this.id.hashCode(); }
+  
 }

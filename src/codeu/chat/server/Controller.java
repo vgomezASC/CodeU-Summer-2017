@@ -14,15 +14,20 @@
 
 package codeu.chat.server;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
+import codeu.chat.common.InterestSet;
 import codeu.chat.common.Message;
 import codeu.chat.common.RandomUuidGenerator;
 import codeu.chat.common.RawController;
 import codeu.chat.common.User;
+import codeu.chat.server.LocalFile;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
@@ -34,9 +39,38 @@ public final class Controller implements RawController, BasicController {
   private final Model model;
   private final Uuid.Generator uuidGenerator;
 
+  private final LocalFile localFile;
+
   public Controller(Uuid serverId, Model model) {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
+    this.localFile = new LocalFile(new File("."));
+  }
+  //New constructor, which can get the local file information.
+  public Controller(Uuid serverId, Model model,LocalFile localFile) {
+    this.model = model;
+    this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
+    
+    this.localFile = localFile;//The path is assigned by server.
+
+    LinkedHashSet<User> localUsers = localFile.getUsers();
+    LinkedHashSet<ConversationHeader> localConversations = localFile.getConversationHeaders();
+    LinkedHashSet<Message> localMessages = localFile.getMessages();
+    
+    for(User item : localUsers)
+    {
+      newUser(item.id, item.name, item.creation);
+    }
+
+    for(ConversationHeader item : localConversations)
+    {
+      newConversation(item.id, item.title, item.owner, item.creation);
+    }
+
+    for(Message item : localMessages)
+    {
+      newMessage(item.id, item.author, item.conversation, item.content, item.creation);
+    }
   }
 
   @Override
@@ -64,8 +98,9 @@ public final class Controller implements RawController, BasicController {
 
     if (foundUser != null && foundConversation != null && isIdFree(id)) {
 
-      message = new Message(id, Uuid.NULL, Uuid.NULL, creationTime, author, body);
+      message = new Message(id, Uuid.NULL, Uuid.NULL, creationTime, author, body,conversation);
       model.add(message);
+      localFile.addMessage(message);
       LOG.info("Message added: %s", message.id);
 
       // Find and update the previous "last" message so that it's "next" value
@@ -108,7 +143,7 @@ public final class Controller implements RawController, BasicController {
 
       user = new User(id, name, creationTime);
       model.add(user);
-
+      localFile.addUser(user);
       LOG.info(
           "newUser success (user.id=%s user.name=%s user.time=%s)",
           id,
@@ -137,12 +172,23 @@ public final class Controller implements RawController, BasicController {
     if (foundOwner != null && isIdFree(id)) {
       conversation = new ConversationHeader(id, owner, creationTime, title);
       model.add(conversation);
+      localFile.addConversationHeader(conversation);
       LOG.info("Conversation added: " + id);
     }
 
     return conversation;
   }
-
+  
+  @Override
+  public InterestSet getInterestSet(Uuid id){
+    return model.getInterestSet(id);
+  }
+  
+  @Override
+  public void updateInterests(Uuid id, InterestSet intSet){
+    model.updateInterests(id, intSet);
+  }
+  
   private Uuid createId() {
 
     Uuid candidate;
@@ -167,5 +213,4 @@ public final class Controller implements RawController, BasicController {
   }
 
   private boolean isIdFree(Uuid id) { return !isIdInUse(id); }
-
 }
