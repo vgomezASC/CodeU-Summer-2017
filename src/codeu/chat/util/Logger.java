@@ -68,7 +68,6 @@ public final class Logger {
     // needs to go one level deeper.  Otherwise it will appear that all the log
     // calls are coming from this object. Use logp() (log precise) to do this.
     return new Log() {
-
       @Override
       public void verbose(String message, Object... params) {
         log.logp(java.util.logging.Level.FINE,

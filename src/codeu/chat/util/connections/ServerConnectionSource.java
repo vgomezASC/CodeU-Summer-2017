@@ -26,7 +26,7 @@ import java.net.Socket;
 // one of their ports so that clients can connect to it. Calls to "connect"
 // will block until a connection is established.
 public final class ServerConnectionSource implements ConnectionSource {
-
+  
   private final ServerSocket serverSocket;
 
   private ServerConnectionSource(ServerSocket serverSocket) {
