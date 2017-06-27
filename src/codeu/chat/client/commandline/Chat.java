@@ -41,6 +41,8 @@ import codeu.chat.util.Uuid;
 
 import codeu.chat.common.ServerInfo;
 
+import codeu.chat.common.ServerInfo;
+
 public final class Chat {
 
   // PANELS
@@ -145,6 +147,27 @@ public final class Chat {
         System.out.println("    Exit the program.");       
       }
     });
+<<<<<<< HEAD
+=======
+    // info (Server info)
+    //
+    // Get some infomation from server; it should be version info currently
+    //
+    panel.register("info", new Panel.Command() {
+        @Override
+        public void invoke(List<String> args) {
+          final ServerInfo info = context.getInfo();
+          if (info == null) {
+            // Communicate error to user - the server did not send us a valid
+            // info object.
+            new IOException("ERROR: ServerInfo cannot be read.").printStackTrace();
+          } else {
+            //Print server info
+            System.out.println("Version:" + info.version);
+          }
+        }
+    });
+>>>>>>> e0a24a36d31b1c14a086576bcf5588f941a822c9
     // U-LIST (user list)
     //
     // Add a command to print all users registered on the server when the user
