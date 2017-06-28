@@ -14,6 +14,7 @@
 
 package codeu.chat.common;
 
+
 public final class NetworkCode {
 
   public static final int
@@ -41,4 +42,5 @@ public final class NetworkCode {
       INTEREST_SET_REQUEST = 33,
       INTEREST_SET_RESPONSE = 34,
       INTEREST_SET_RECORD = 35;
+
 }
