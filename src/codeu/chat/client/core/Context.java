@@ -48,6 +48,7 @@ public final class Context {
       users.add(new UserContext(user, view, controller));
     }
     return users;
+
   }
   
   public InterestSet getInterestSet(Uuid id){

@@ -102,7 +102,7 @@ public final class Server {
             message.id));
       }
     });
-
+      
     // New User - A client wants to add a new user to the back end.
     this.commands.put(NetworkCode.NEW_USER_REQUEST,  new Command() {
       @Override
@@ -191,6 +191,7 @@ public final class Server {
       {
         Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
         Uuid.SERIALIZER.write(out, info.version);
+        Time.SERIALIZER.write(out, view.getInfo().startTime);
       }
     });
 
