@@ -99,7 +99,7 @@ final class ServerMain {
     final Server server = new Server(id, secret, relay, localFilePath);
 
     LOG.info("Created server.");
-
+    
     while (true) {
 
       try {

@@ -14,6 +14,7 @@
 
 package codeu.chat.common;
 
+
 public final class NetworkCode {
 
   public static final int
@@ -38,5 +39,9 @@ public final class NetworkCode {
       RELAY_WRITE_RESPONSE = 30,
       SERVER_INFO_REQUEST = 31,
       SERVER_INFO_RESPONSE = 32,
-      CONVERSATION_ACCESS_DENIED = 33;
+      INTEREST_SET_REQUEST = 33,
+      INTEREST_SET_RESPONSE = 34,
+      INTEREST_SET_RECORD = 35,
+      CONVERSATION_ACCESS_DENIED = 36;
+
 }

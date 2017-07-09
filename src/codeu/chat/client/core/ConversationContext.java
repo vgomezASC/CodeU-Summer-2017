@@ -24,15 +24,18 @@ import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.Message;
 import codeu.chat.common.User;
+import codeu.chat.util.Serializer;
+import codeu.chat.util.Serializers;
+import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 
 public final class ConversationContext {
-
+ 
   public final User user;
   public final ConversationHeader conversation;
 
-  private final BasicView view;
-  private final BasicController controller;
+  public final BasicView view;
+  public final BasicController controller;
 
   public ConversationContext(User user,
                              ConversationHeader conversation,
@@ -50,7 +53,7 @@ public final class ConversationContext {
     final Message message = controller.newMessage(user.id,
                                                   conversation.id,
                                                   messageBody);
-
+	
     return message == null ?
         null :
         new MessageContext(message, conversation, user, view);
@@ -84,8 +87,25 @@ public final class ConversationContext {
     return payloads.hasNext() ? payloads.next() : null;
   }
 
+<<<<<<< HEAD
   private MessageContext getMessage(Uuid id) {
     final Iterator<Message> messages = view.getMessages(conversation, user, Arrays.asList(id)).iterator();
     return messages.hasNext() ? new MessageContext(messages.next(), conversation, user, view) : null;
+=======
+  public MessageContext getMessage(Uuid id) {
+    final Iterator<Message> messages = view.getMessages(Arrays.asList(id)).iterator();
+    return messages.hasNext() ? new MessageContext(messages.next(), view) : null;
+>>>>>>> e8b7c466b90f32b9119079c9b925bdbe3d30292d
   }
+  
+  public MessageContext findMessageByUuid(Uuid id) {
+    for (MessageContext message = this.firstMessage();
+                        message != null;
+                        message = message.next()){
+      if (message.message.id.equals(id))
+        return message;
+    }
+    return null;
+  }
+  
 }

@@ -15,13 +15,19 @@
 package codeu.chat.server;
 
 import java.util.Comparator;
+<<<<<<< HEAD
 import java.util.LinkedHashMap;
+=======
+import java.util.HashMap;
+>>>>>>> e8b7c466b90f32b9119079c9b925bdbe3d30292d
 
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
+import codeu.chat.common.InterestSet;
 import codeu.chat.common.LinearUuidGenerator;
 import codeu.chat.common.Message;
 import codeu.chat.common.User;
+import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.store.Store;
@@ -51,7 +57,9 @@ public final class Model {
       return a.compareTo(b);
     }
   };
-
+  
+  private final static Logger.Log LOG = Logger.newLog(Model.class);
+  
   private static final Comparator<String> STRING_COMPARE = String.CASE_INSENSITIVE_ORDER;
 
   private final Store<Uuid, User> userById = new Store<>(UUID_COMPARE);
@@ -68,12 +76,18 @@ public final class Model {
   private final Store<Time, Message> messageByTime = new Store<>(TIME_COMPARE);
   private final Store<String, Message> messageByText = new Store<>(STRING_COMPARE);
 
+<<<<<<< HEAD
   private final LinkedHashMap<Uuid, LinkedHashMap<Uuid, Byte>> authority = new LinkedHashMap<>();
+=======
+  private HashMap<Uuid, InterestSet> interestMap = new HashMap<Uuid, InterestSet>();
+>>>>>>> e8b7c466b90f32b9119079c9b925bdbe3d30292d
 
   public void add(User user) {
     userById.insert(user.id, user);
     userByTime.insert(user.creation, user);
     userByText.insert(user.name, user);
+    interestMap.put(user.id, new InterestSet());
+    LOG.info("NEW SIZE: "+interestMap.size());
   }
 
   public StoreAccessor<Uuid, User> userById() {
@@ -128,6 +142,7 @@ public final class Model {
   public StoreAccessor<String, Message> messageByText() {
     return messageByText;
   }
+<<<<<<< HEAD
 
   public void changeAuthority(ConversationHeader conversation, Uuid targetUser, byte authorityByte)
   {
@@ -144,5 +159,18 @@ public final class Model {
   {
     LinkedHashMap<Uuid, Byte> userAuthority = authority.get(conversation.id);
     return userAuthority.get(conversation.id) != null && userAuthority.get(targetUser).byteValue() == authorityByte;
+=======
+  
+  public InterestSet getInterestSet(Uuid id){
+    LOG.info(interestMap.get(id).toString());
+    LOG.info("CURRENT: "+interestMap.size());
+    return interestMap.get(id);
+  }
+  public void updateInterests(Uuid id, InterestSet intSet){
+    LOG.info("BEFORE: "+interestMap.size());
+    interestMap.put(id, intSet);
+    LOG.info("AFTER: "+interestMap.size());
+    LOG.info(interestMap.get(id).toString());
+>>>>>>> e8b7c466b90f32b9119079c9b925bdbe3d30292d
   }
 }

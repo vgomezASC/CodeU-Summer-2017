@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import codeu.chat.common.BasicView;
+import codeu.chat.common.InterestSet;
 import codeu.chat.common.User;
 import codeu.chat.common.ServerInfo;
 import codeu.chat.util.Uuid;
@@ -47,7 +48,17 @@ public final class Context {
       users.add(new UserContext(user, view, controller));
     }
     return users;
+
   }
+  
+  public InterestSet getInterestSet(Uuid id){
+  	return view.getInterestSet(id);
+  }
+  
+  public void updateInterests(Uuid id, InterestSet intSet){
+    controller.updateInterests(id, intSet);
+  } 
+  
   /**
    * Get the info of the server; version info should be returned currently.
    * @return The infomation of the server. If fails, null will be returned.

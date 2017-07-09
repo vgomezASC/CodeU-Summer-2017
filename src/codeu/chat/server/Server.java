@@ -28,11 +28,13 @@ import java.util.Map;
 
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
+import codeu.chat.common.InterestSet;
 import codeu.chat.common.LinearUuidGenerator;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
 import codeu.chat.server.LocalFile;
 import codeu.chat.common.ServerInfo;
@@ -56,9 +58,10 @@ public final class Server {
   private final Timeline timeline = new Timeline();
 
   private final Map<Integer, Command> commands = new HashMap<>();
-
+  
   private final Uuid id;
   private final Secret secret;
+  private static final ServerInfo info = new ServerInfo();
 
   private final Model model = new Model();
   private final View view = new View(model);
@@ -99,7 +102,7 @@ public final class Server {
             message.id));
       }
     });
-
+      
     // New User - A client wants to add a new user to the back end.
     this.commands.put(NetworkCode.NEW_USER_REQUEST,  new Command() {
       @Override
@@ -107,7 +110,7 @@ public final class Server {
 
         final String name = Serializers.STRING.read(in);
         final User user = controller.newUser(name);
-
+        
         Serializers.INTEGER.write(out, NetworkCode.NEW_USER_RESPONSE);
         Serializers.nullable(User.SERIALIZER).write(out, user);
       }
@@ -188,6 +191,7 @@ public final class Server {
         }
       }
     });
+
     //Get the version from server
     this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command()
     {
@@ -195,7 +199,32 @@ public final class Server {
       public void onMessage(InputStream in,OutputStream out) throws IOException
       {
         Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
-        Uuid.SERIALIZER.write(out, view.getInfo().version);
+        Uuid.SERIALIZER.write(out, info.version);
+        Time.SERIALIZER.write(out, view.getInfo().startTime);
+      }
+    });
+
+    this.commands.put(NetworkCode.INTEREST_SET_REQUEST, new Command()
+    {
+      @Override
+      public void onMessage(InputStream in,OutputStream out) throws IOException
+      {
+        final Uuid id = Uuid.SERIALIZER.read(in);
+       
+        Serializers.INTEGER.write(out, NetworkCode.INTEREST_SET_RESPONSE);
+        InterestSet.SERIALIZER.write(out, model.getInterestSet(id)); 
+      }
+      
+    });
+    
+    this.commands.put(NetworkCode.INTEREST_SET_RECORD, new Command()
+    {
+      @Override
+      public void onMessage(InputStream in,OutputStream out) throws IOException
+      {
+        final Uuid id = Uuid.SERIALIZER.read(in);
+        final InterestSet intSet = InterestSet.SERIALIZER.read(in);
+        controller.updateInterests(id, intSet);
       }
     });
 
@@ -241,7 +270,7 @@ public final class Server {
       }
     });
   }
-
+  
   public void handleConnection(final Connection connection) {
     timeline.scheduleNow(new Runnable() {
       @Override

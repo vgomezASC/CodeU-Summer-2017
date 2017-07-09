@@ -30,27 +30,27 @@ import java.util.regex.Pattern;
 import codeu.chat.common.BasicView;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
+import codeu.chat.common.InterestSet;
 import codeu.chat.common.Message;
 import codeu.chat.common.ServerInfo;
 import codeu.chat.common.SinglesView;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.store.StoreAccessor;
+import codeu.chat.common.ServerInfo;
 
 public final class View implements BasicView, SinglesView {
 
   private final static Logger.Log LOG = Logger.newLog(View.class);
-
   private final Model model;
-
   private final static ServerInfo info = new ServerInfo();
 
   public View(Model model) {
     this.model = model;
   }
-
 
   @Override
   public Collection<User> getUsers() {
@@ -71,7 +71,22 @@ public final class View implements BasicView, SinglesView {
   public Collection<Message> getMessages(ConversationHeader conversation, User user, Collection<Uuid> ids) {
     return intersect(model.messageById(), ids);
   }
-
+  
+  /**
+   * Get the info of the server; version info should be returned currently.
+   * @return The infomation of the server. If fails, null will be returned.
+   */
+  @Override
+  public ServerInfo getInfo() 
+  {
+    return info;
+  }  
+  
+  @Override
+  public InterestSet getInterestSet(Uuid id){
+    return model.getInterestSet(id);
+  }
+  
   @Override
   public User findUser(Uuid id) { return model.userById().first(id); }
 
@@ -80,7 +95,7 @@ public final class View implements BasicView, SinglesView {
 
   @Override
   public Message findMessage(Uuid id) { return model.messageById().first(id); }
-
+    
   private static <S,T> Collection<T> all(StoreAccessor<S,T> store) {
 
     final Collection<T> all = new ArrayList<>();
@@ -115,13 +130,4 @@ public final class View implements BasicView, SinglesView {
     return found;
   }
 
-/**
-   * Get the info of the server; version info should be returned currently.
-   * @return The infomation of the server. If fails, null will be returned.
-   */
-  @Override
-  public ServerInfo getInfo() 
-  {
-    return info;
-  }
 }
