@@ -33,6 +33,11 @@ import codeu.chat.util.Uuid;
 
 public final class Controller implements RawController, BasicController {
 
+  public static final byte USER_TYPE_CREATOR = 0x07;
+  public static final byte USER_TYPE_OWNER = 0x03;
+  public static final byte USER_TYPE_USER = 0x01;
+  public static final byte USER_TYPE_BANNED = 0x00;
+
   private final static Logger.Log LOG = Logger.newLog(Controller.class);
 
   private final Model model;
@@ -172,6 +177,7 @@ public final class Controller implements RawController, BasicController {
       conversation = new ConversationHeader(id, owner, creationTime, title);
       model.add(conversation);
       localFile.addConversationHeader(conversation);
+      model.changeAuthority(conversation, owner, USER_TYPE_CREATOR);
       LOG.info("Conversation added: " + id);
     }
 

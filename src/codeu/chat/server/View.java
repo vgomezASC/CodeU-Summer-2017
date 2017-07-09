@@ -68,7 +68,7 @@ public final class View implements BasicView, SinglesView {
   }
 
   @Override
-  public Collection<Message> getMessages(Collection<Uuid> ids) {
+  public Collection<Message> getMessages(ConversationHeader conversation, User user, Collection<Uuid> ids) {
     return intersect(model.messageById(), ids);
   }
 

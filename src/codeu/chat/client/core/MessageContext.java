@@ -18,16 +18,22 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import codeu.chat.common.BasicView;
+import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.Message;
+import codeu.chat.common.User;
 import codeu.chat.util.Uuid;
 
 public final class MessageContext {
 
   public final Message message;
+  private final ConversationHeader conversation;
+  private final User user;
   private final BasicView view;
 
-  public MessageContext(Message message, BasicView view) {
+  public MessageContext(Message message, ConversationHeader conversation, User user, BasicView view) {
     this.message = message;
+    this.conversation = conversation;
+    this.user = user;
     this.view = view;
   }
 
@@ -40,7 +46,7 @@ public final class MessageContext {
   }
 
   private MessageContext getMessage(Uuid id) {
-    final Iterator<Message> messages = view.getMessages(Arrays.asList(id)).iterator();
-    return messages.hasNext() ? new MessageContext(messages.next(), view) : null;
+    final Iterator<Message> messages = view.getMessages(conversation, user, Arrays.asList(id)).iterator();
+    return messages.hasNext() ? new MessageContext(messages.next(), conversation, user, view) : null;
   }
 }

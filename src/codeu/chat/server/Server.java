@@ -172,11 +172,20 @@ public final class Server {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
 
+        final ConversationHeader conversation = ConversationHeader.SERIALIZER.read(in);
+        final User user = User.SERIALIZER.read(in);
         final Collection<Uuid> ids = Serializers.collection(Uuid.SERIALIZER).read(in);
-        final Collection<Message> messages = view.getMessages(ids);
+        if(model.validateAuthority(conversation, user.id, Controller.USER_TYPE_BANNED))
+        {
+          Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
+        }
+        else
+        {
+          final Collection<Message> messages = view.getMessages(conversation, user, ids);
 
-        Serializers.INTEGER.write(out, NetworkCode.GET_MESSAGES_BY_ID_RESPONSE);
-        Serializers.collection(Message.SERIALIZER).write(out, messages);
+          Serializers.INTEGER.write(out, NetworkCode.GET_MESSAGES_BY_ID_RESPONSE);
+          Serializers.collection(Message.SERIALIZER).write(out, messages);
+        }
       }
     });
     //Get the version from server
