@@ -23,6 +23,9 @@
  *  - codeu.chat.server.Controller.updatePermissionMap(Uuid id, HashMap<Uuid, byte> accessMap)
  *  - codeu.chat.server.Controller.checkMembership(Uuid id, ConversationHeader conversation)
  *  - ...server.Controller.demoteOwner(byte access, Uuid target, ConversationHeader conversation)
+ *  - ...server.Controller.addOwner(byte access, Uuid target, ConversationHeader conversation)
+ *  - ...server.Controller.ban(byte access, Uuid target, ConversationHeader conversation)
+ *  - ...server.Controller.addMember(byte access, Uuid target, ConversationHeader conversation)
  *    
  */
 
@@ -223,7 +226,7 @@ public final class ConversationAccessServerTest {
     
      User badOwner1 = controller.newUser("badOwner1");
     accessMap.put(badOwner1, ownerByte);
-    controller.update(conversation, accessMap);
+    controller.updatePermissionMap(conversation, accessMap);
     controller.ban(creatorByte, badOwner1.id, conversation);
     accessMap = controller.getPermissionMap(conversation);
     
@@ -240,7 +243,7 @@ public final class ConversationAccessServerTest {
     
     User badOwner2 = controller.newUser("badOwner2");
     accessMap.put(badOwner2, ownerByte);
-    controller.update(conversation, accessMap);
+    controller.updatePermissionMap(conversation, accessMap);
     controller.ban(ownerByte, badOwner2.id, conversation);
     accessMap = controller.getPermissionMap(conversation);
     
@@ -250,7 +253,7 @@ public final class ConversationAccessServerTest {
     
     User badMember = controller.newUser("badMember");
     accessMap.put(badMember.id, memberByte);
-    controller.update(conversation, accessMap);
+    controller.updatePermissionMap(conversation, accessMap);
     controller.ban(creatorByte, badMember.id, conversation);
     accessMap = controller.getPermissionMap(conversation);
     
