@@ -53,9 +53,17 @@ final class Controller implements BasicController {
       Uuid.SERIALIZER.write(connection.out(), conversation);
       Serializers.STRING.write(connection.out(), body);
 
-      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.NEW_MESSAGE_RESPONSE) {
+      int reply = Serializers.INTEGER.read(connection.in());
+      if(reply == NetworkCode.CONVERSATION_ACCESS_DENIED)
+      {
+        System.out.println("WARNING: Access Denied.");
+      }
+      else if (reply == NetworkCode.NEW_MESSAGE_RESPONSE)
+      {
         response = Serializers.nullable(Message.SERIALIZER).read(connection.in());
-      } else {
+      } 
+      else 
+      {
         LOG.error("Response from server failed.");
       }
     } catch (Exception ex) {
@@ -147,5 +155,37 @@ final class Controller implements BasicController {
       LOG.error(ex, "Exception during call on server.");
     }
     
+  }
+
+  public void authorityModificationRequest(ConversationHeader conversation, User targetUser, User user, String parameterString)
+  {
+    try(final Connection connection = this.source.connect())
+    {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.CONVERSATION_AUTHORITY_REQUEST);
+      ConversationHeader.SERIALIZER.write(connection.out(), conversation);
+      User.SERIALIZER.write(connection.out(), targetUser);
+      User.SERIALIZER.write(connection.out(), user);
+      Serializers.STRING.write(connection.out(), parameterString);
+
+      int reply = Serializers.INTEGER.read(connection.in());
+
+      if(reply == NetworkCode.CONVERSATION_ACCESS_DENIED)
+      {
+        System.out.println("WARNING: Access denied! Not enough authority!");
+      }
+      else if(reply == NetworkCode.CONVERSATION_AUTHORITY_RESPONSE)
+      {
+        System.out.println("Successfully set the authority!");
+      }
+      else 
+      {
+        LOG.error("Response from server failed.");
+      }
+    }
+    catch(Exception ex)
+    {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+    }
   }
 }

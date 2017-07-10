@@ -166,7 +166,24 @@ public final class Controller implements RawController, BasicController {
 
     return user;
   }
-
+  @Override
+  public void authorityModificationRequest(ConversationHeader conversation, User targetUser, User fromUser, String parameterString)
+  {
+    byte authorityByte = 0;
+    if(parameterString.equals("o"))
+    {
+      authorityByte = USER_TYPE_OWNER;
+    }
+    else if(parameterString.equals("u"))
+    {
+      authorityByte = USER_TYPE_USER;
+    }
+    else if(parameterString.equals("b"))
+    {
+      authorityByte = USER_TYPE_BANNED;
+    }
+    model.changeAuthority(conversation, targetUser.id, authorityByte);
+  }
   @Override
   public ConversationHeader newConversation(Uuid id, String title, Uuid owner, Time creationTime) {
 

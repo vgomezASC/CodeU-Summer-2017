@@ -81,7 +81,30 @@ public final class Server {
     this.localFile = new LocalFile(new File(file.getPath()));//file path is given by user
     this.controller = new Controller(id, model,localFile);//Use the new constructor to create this new controller.
     this.relay = relay;
-
+    this.commands.put(NetworkCode.CONVERSATION_AUTHORITY_REQUEST, new Command()
+    {
+      @Override
+      public void onMessage(InputStream in, OutputStream out) throws IOException
+      {
+        final ConversationHeader conversation = ConversationHeader.SERIALIZER.read(in);
+        final User targetUser = User.SERIALIZER.read(in);
+        final User fromUser = User.SERIALIZER.read(in);
+        final String parameterString = Serializers.STRING.read(in);
+        if(model.isUser(conversation, fromUser.id) || model.isBannedUser(conversation, fromUser.id))
+        {
+          Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
+        }
+        else if(model.isOwner(conversation, fromUser.id) && model.isCreator(conversation, targetUser.id))
+        {
+          Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
+        }
+        else
+        {
+          controller.authorityModificationRequest(conversation, targetUser, fromUser, parameterString);
+          Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_AUTHORITY_RESPONSE);
+        }
+      }
+    });
     // New Message - A client wants to add a new message to the back end.
     this.commands.put(NetworkCode.NEW_MESSAGE_REQUEST, new Command() {
       @Override
@@ -91,15 +114,21 @@ public final class Server {
         final Uuid conversation = Uuid.SERIALIZER.read(in);
         final String content = Serializers.STRING.read(in);
 
-        final Message message = controller.newMessage(author, conversation, content);
+        if(model.isBannedUser(conversation, author))
+        {
+          Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
+        }
+        else
+        {
+          final Message message = controller.newMessage(author, conversation, content);
+          Serializers.INTEGER.write(out, NetworkCode.NEW_MESSAGE_RESPONSE);
+          Serializers.nullable(Message.SERIALIZER).write(out, message);
 
-        Serializers.INTEGER.write(out, NetworkCode.NEW_MESSAGE_RESPONSE);
-        Serializers.nullable(Message.SERIALIZER).write(out, message);
-
-        timeline.scheduleNow(createSendToRelayEvent(
-            author,
-            conversation,
-            message.id));
+          timeline.scheduleNow(createSendToRelayEvent(
+              author,
+              conversation,
+              message.id));
+        }
       }
     });
       
@@ -178,7 +207,7 @@ public final class Server {
         final ConversationHeader conversation = ConversationHeader.SERIALIZER.read(in);
         final User user = User.SERIALIZER.read(in);
         final Collection<Uuid> ids = Serializers.collection(Uuid.SERIALIZER).read(in);
-        if(model.validateAuthority(conversation, user.id, Controller.USER_TYPE_BANNED))
+        if(model.isBannedUser(conversation, user.id))
         {
           Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
         }

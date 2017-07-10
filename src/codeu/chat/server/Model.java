@@ -74,6 +74,7 @@ public final class Model {
   private final Store<String, Message> messageByText = new Store<>(STRING_COMPARE);
 
   private final LinkedHashMap<Uuid, LinkedHashMap<Uuid, Byte>> authority = new LinkedHashMap<>();
+
   private HashMap<Uuid, InterestSet> interestMap = new HashMap<Uuid, InterestSet>();
 
   public void add(User user) {
@@ -148,11 +149,75 @@ public final class Model {
     userAuthority.put(targetUser, authorityByte);
   }
 
-  public boolean validateAuthority(ConversationHeader conversation, Uuid targetUser, byte authorityByte)
+  public boolean isBannedUser(ConversationHeader conversation,Uuid targetUser)
   {
     LinkedHashMap<Uuid, Byte> userAuthority = authority.get(conversation.id);
-    return userAuthority.get(conversation.id) != null && userAuthority.get(targetUser).byteValue() == authorityByte;
+    Byte authoritByte = userAuthority.get(targetUser);
+    return authoritByte != null && authoritByte.byteValue() == Controller.USER_TYPE_BANNED;
   }
+
+
+  public boolean isBannedUser(Uuid conversation,Uuid targetUser)
+  {
+    LinkedHashMap<Uuid, Byte> userAuthority = authority.get(conversation);
+    Byte authoritByte = userAuthority.get(targetUser);
+    return authoritByte != null && authoritByte.byteValue() == Controller.USER_TYPE_BANNED;
+  }
+
+  public boolean isUser(ConversationHeader conversation,Uuid targetUser)
+  {
+    LinkedHashMap<Uuid, Byte> userAuthority = authority.get(conversation.id);
+    Byte authoritByte = userAuthority.get(targetUser);
+    if(authoritByte == null)
+    {
+      userAuthority.put(targetUser, Controller.USER_TYPE_USER);
+      return true;
+    }
+    return authoritByte.byteValue() == Controller.USER_TYPE_USER;
+  }
+
+
+  public boolean isUser(Uuid conversation,Uuid targetUser)
+  {
+    LinkedHashMap<Uuid, Byte> userAuthority = authority.get(conversation);
+    Byte authoritByte = userAuthority.get(targetUser);
+    if(authoritByte == null)
+    {
+      userAuthority.put(targetUser, Controller.USER_TYPE_USER);
+      return true;
+    }
+    return authoritByte.byteValue() == Controller.USER_TYPE_USER;
+  }
+  public boolean isOwner(ConversationHeader conversation,Uuid targetUser)  
+  {
+    LinkedHashMap<Uuid, Byte> userAuthority = authority.get(conversation.id);
+    Byte authoritByte = userAuthority.get(targetUser);
+    return authoritByte != null && authoritByte.byteValue() == Controller.USER_TYPE_OWNER;
+  }
+
+
+  public boolean isOwner(Uuid conversation,Uuid targetUser)
+  {
+    LinkedHashMap<Uuid, Byte> userAuthority = authority.get(conversation);
+    Byte authoritByte = userAuthority.get(targetUser);
+    return authoritByte != null && authoritByte.byteValue() == Controller.USER_TYPE_OWNER;
+  }
+
+  public boolean isCreator(ConversationHeader conversation,Uuid targetUser)  
+  {
+    LinkedHashMap<Uuid, Byte> userAuthority = authority.get(conversation.id);
+    Byte authoritByte = userAuthority.get(targetUser);
+    return authoritByte != null && authoritByte.byteValue() == Controller.USER_TYPE_CREATOR;
+  }
+
+
+  public boolean isCreator(Uuid conversation,Uuid targetUser)
+  {
+    LinkedHashMap<Uuid, Byte> userAuthority = authority.get(conversation);
+    Byte authoritByte = userAuthority.get(targetUser);
+    return authoritByte != null && authoritByte.byteValue() == Controller.USER_TYPE_CREATOR;
+  }
+  
   public InterestSet getInterestSet(Uuid id){
     LOG.info(interestMap.get(id).toString());
     LOG.info("CURRENT: "+interestMap.size());

@@ -34,6 +34,7 @@ import codeu.chat.common.Bookmark;
 import codeu.chat.common.InterestSet;
 import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
+import codeu.chat.server.Controller;
 import codeu.chat.util.Sort;
 import codeu.chat.util.Time;
 import codeu.chat.util.Tokenizer;
@@ -417,6 +418,8 @@ public final class Chat {
         System.out.println("    List all messages in the current conversation.");
         System.out.println("  m-add <message>");
         System.out.println("    Add a new message to the current conversation as the current user.");
+        System.out.println("  u-authorize <user> <authority>");
+        System.out.println("    Change the authority for user. o:Owner u:User b:Banned");
         System.out.println("  info");
         System.out.println("    Display all info about the current conversation.");
         System.out.println("  back");
@@ -425,7 +428,34 @@ public final class Chat {
         System.out.println("    Exit the program.");
       }
     });
-
+    panel.register("u-authorize", new Panel.Command()
+    {
+      @Override
+      public void invoke(List<String> args) 
+      {
+        if (args.size() < 2) 
+        {
+      	  System.out.println("ERROR: Please provide enough parameters!!!");
+      	} 
+        else
+        {
+          String user = args.get(0);
+          if(findUser(user) == null)
+          {
+            System.out.println("ERROR: No such user.");
+          }
+          else if(!args.get(1).equals("o") && !args.get(1).equals("u") && !args.get(1).equals("b"))
+          {
+            System.out.println(args.get(1));
+            System.out.println("ERROR: Parameter is unacceptable!");
+          }
+          else
+          {
+            conversation.changeAuthority(findUser(user), args.get(1));
+          }
+        }
+      }
+    });
     // M-LIST (list messages)
     //
     // Add a command to print all messages in the current conversation when the

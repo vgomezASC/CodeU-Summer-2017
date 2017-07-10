@@ -59,5 +59,7 @@ public interface BasicController {
   InterestSet getInterestSet(Uuid id);
   
   // ??
-  void updateInterests(Uuid id, InterestSet intSet);
+  void updateInterests(Uuid id, InterestSet intSet); 
+
+  void authorityModificationRequest(ConversationHeader conversation, User targetUser, User fromUser ,String parameterString);
 }
