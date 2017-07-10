@@ -20,24 +20,15 @@ import java.util.Iterator;
 import codeu.chat.common.BasicView;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.Message;
-<<<<<<< HEAD
 import codeu.chat.common.User;
-=======
-import codeu.chat.util.Serializer;
-import codeu.chat.util.Serializers;
->>>>>>> e8b7c466b90f32b9119079c9b925bdbe3d30292d
 import codeu.chat.util.Uuid;
 
 public final class MessageContext {
   
   public final Message message;
-<<<<<<< HEAD
   private final ConversationHeader conversation;
   private final User user;
   private final BasicView view;
-=======
-  public final BasicView view;
->>>>>>> e8b7c466b90f32b9119079c9b925bdbe3d30292d
 
   public MessageContext(Message message, ConversationHeader conversation, User user, BasicView view) {
     this.message = message;

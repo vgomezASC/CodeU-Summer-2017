@@ -87,15 +87,9 @@ public final class ConversationContext {
     return payloads.hasNext() ? payloads.next() : null;
   }
 
-<<<<<<< HEAD
   private MessageContext getMessage(Uuid id) {
     final Iterator<Message> messages = view.getMessages(conversation, user, Arrays.asList(id)).iterator();
     return messages.hasNext() ? new MessageContext(messages.next(), conversation, user, view) : null;
-=======
-  public MessageContext getMessage(Uuid id) {
-    final Iterator<Message> messages = view.getMessages(Arrays.asList(id)).iterator();
-    return messages.hasNext() ? new MessageContext(messages.next(), view) : null;
->>>>>>> e8b7c466b90f32b9119079c9b925bdbe3d30292d
   }
   
   public MessageContext findMessageByUuid(Uuid id) {

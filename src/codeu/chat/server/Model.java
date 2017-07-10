@@ -15,11 +15,8 @@
 package codeu.chat.server;
 
 import java.util.Comparator;
-<<<<<<< HEAD
 import java.util.LinkedHashMap;
-=======
 import java.util.HashMap;
->>>>>>> e8b7c466b90f32b9119079c9b925bdbe3d30292d
 
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
@@ -76,11 +73,8 @@ public final class Model {
   private final Store<Time, Message> messageByTime = new Store<>(TIME_COMPARE);
   private final Store<String, Message> messageByText = new Store<>(STRING_COMPARE);
 
-<<<<<<< HEAD
   private final LinkedHashMap<Uuid, LinkedHashMap<Uuid, Byte>> authority = new LinkedHashMap<>();
-=======
   private HashMap<Uuid, InterestSet> interestMap = new HashMap<Uuid, InterestSet>();
->>>>>>> e8b7c466b90f32b9119079c9b925bdbe3d30292d
 
   public void add(User user) {
     userById.insert(user.id, user);
@@ -142,7 +136,6 @@ public final class Model {
   public StoreAccessor<String, Message> messageByText() {
     return messageByText;
   }
-<<<<<<< HEAD
 
   public void changeAuthority(ConversationHeader conversation, Uuid targetUser, byte authorityByte)
   {
@@ -159,8 +152,7 @@ public final class Model {
   {
     LinkedHashMap<Uuid, Byte> userAuthority = authority.get(conversation.id);
     return userAuthority.get(conversation.id) != null && userAuthority.get(targetUser).byteValue() == authorityByte;
-=======
-  
+  }
   public InterestSet getInterestSet(Uuid id){
     LOG.info(interestMap.get(id).toString());
     LOG.info("CURRENT: "+interestMap.size());
@@ -171,6 +163,5 @@ public final class Model {
     interestMap.put(id, intSet);
     LOG.info("AFTER: "+interestMap.size());
     LOG.info(interestMap.get(id).toString());
->>>>>>> e8b7c466b90f32b9119079c9b925bdbe3d30292d
   }
 }
