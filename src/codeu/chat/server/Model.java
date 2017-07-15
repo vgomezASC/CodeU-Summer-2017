@@ -140,6 +140,7 @@ public final class Model {
     LOG.info("CURRENT: "+interestMap.size());
     return interestMap.get(id);
   }
+  
   public void updateInterests(Uuid id, InterestSet intSet){
     LOG.info("BEFORE: "+interestMap.size());
     interestMap.put(id, intSet);
