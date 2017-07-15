@@ -45,7 +45,8 @@ public class PermissionSetTest {
 	  ConversationHeader chatB = controller.newConversation("chatB", p1.id);
 	  ConversationHeader chatC = controller.newConversation("chatC", p1.id);
 	  
-	  HashSet
+	  HashSet<Uuid, byte> = model.getPermissionSet();
+	  
 	}
 
 }
