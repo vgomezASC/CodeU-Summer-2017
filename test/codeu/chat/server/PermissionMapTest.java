@@ -23,11 +23,9 @@ import codeu.chat.common.BasicController;
 import codeu.chat.common.BasicView;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.User;
-import codeu.chat.server.*;
-// ^ this line is only here bc Eclipse wants it to be
 import codeu.chat.util.Uuid;
 
-public class PermissionSetTest {
+public class PermissionMapTest {
 	
 	private Model model;
 	private BasicController controller;
@@ -41,14 +39,20 @@ public class PermissionSetTest {
 	}
 	
 	@Test
-	public void mainPermissionSetAccessTest(){
+	public void mainPermissionMapAccessTest(){
 	  User p1 = controller.newUser("p1");
+	  User p2 = controller.newUser("p2");
+	  User p3 = controller.newUser("p3");
 	  ConversationHeader chatA = controller.newConversation("chatA", p1.id);
-	  ConversationHeader chatB = controller.newConversation("chatB", p1.id);
-	  ConversationHeader chatC = controller.newConversation("chatC", p1.id);
+	  ConversationHeader chatB = controller.newConversation("chatB", p2.id);
+	  ConversationHeader chatC = controller.newConversation("chatC", p3.id);
 	  
-	  HashSet<Uuid, byte> set = model.getPermissionSet();
-	  
+	  HashMap<Uuid, Byte> accessMap = model.getPermissionMap(chatA);
+
+	  assertFalse(
+		  "Check that the correct map was accessed",
+		  !accessMap.containsKey(p1.id));
 	}
 
 }
+

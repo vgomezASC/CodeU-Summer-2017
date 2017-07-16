@@ -73,7 +73,8 @@ public final class Model {
   private final Store<String, Message> messageByText = new Store<>(STRING_COMPARE);
 
   private HashMap<Uuid, InterestSet> interestMap = new HashMap<Uuid, InterestSet>();
-
+  private HashMap<ConversationHeader, HashMap<Uuid, Byte>> authority = new HashMap<ConversationHeader, HashMap<Uuid, Byte>>();
+  
   public void add(User user) {
     userById.insert(user.id, user);
     userByTime.insert(user.creation, user);

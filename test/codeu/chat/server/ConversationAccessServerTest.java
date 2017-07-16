@@ -88,7 +88,7 @@ public final class ConversationAccessServerTest {
     final User user = controller.newUser("user");
      
     ConversationHeader conversation = controller.newConversation("chat", creator.id);
-    HashMap<Uuid, byte> accessMap = controller.getPermissionMap(conversation);
+    HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
     
     byte memberByte = 0b001; // Before testing, this must be the equivalent of 001.
     
@@ -111,11 +111,11 @@ public final class ConversationAccessServerTest {
     ConversationHeader conversation = controller.newConversation("conversation", creator.id);
     
     byte creatorByte = 0b111; // Before testing, this must be the equivalent of 111.
-    HashMap<Uuid, byte> accessMap = controller.getPermissionMap(conversation);
+    HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
     
     assertFalse(
         "Check that the creator's byte is 111",
-        !accessMap.get(creator.id).equals(c));
+        !accessMap.get(creator.id).equals(creatorByte));
     
     byte ownerByte = 0b011; // Before testing, this must be the equivalent of 011.
     accessMap.put(owner.id, ownerByte);
@@ -353,7 +353,7 @@ public final class ConversationAccessServerTest {
     final Message messageA2 = controller.newMessage(p2.id, chatA.id,
         "cowabungaaaaaaaaaaaa");
         
-    HashMap<Uuid, byte> accessMap = controller.getPermissionMap(chatA);
+    HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(chatA);
     controller.addOwner(accessMap.get(p1), p2.id, chatA);
     
     controller.checkMembership(p3, chatA);
@@ -376,9 +376,9 @@ public final class ConversationAccessServerTest {
     accessMap = controller.getPermissionMap(chatB);
     controller.addOwner(accessMap.get(p1), p3.id, chatB);
     
-    final Message messageB1 = controller.newMessage(p2.id, chatB.id,
+    final Message messageB2 = controller.newMessage(p2.id, chatB.id,
         "I like Saturn");
-    final Message messageB2 = controller.newMessage(p3.id, chatB.id,
+    final Message messageB3 = controller.newMessage(p3.id, chatB.id,
         "the moon is my friend (END)");
     
     ConversationHeader chatC = controller.newConversation("chatC", p2.id);
@@ -454,11 +454,11 @@ public final class ConversationAccessServerTest {
       String convoTitle = view.findConversation(m.conversation).title;
       while (m.next != Uuid.NULL){
         m = view.findMessage(m.next);
-        if (m.content.equals(messageCFailed.content))
+        if (m.content.equals(messageCFailed1.content))
           System.out.println("ERROR: banned user successfully wrote to chatC!");
       };
       assertFalse("Check that "+convoTitle+"'s last message has the proper end",
-      !m.content.indexOf("(END)")>= 0);
+      !(m.content.indexOf("(END)")>= 0));
     }   
   }
   
