@@ -23,6 +23,8 @@ import codeu.chat.common.BasicController;
 import codeu.chat.common.BasicView;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.User;
+import codeu.chat.server.*;
+// ^ this line is only here bc Eclipse wants it to be
 import codeu.chat.util.Uuid;
 
 public class PermissionSetTest {
@@ -45,7 +47,7 @@ public class PermissionSetTest {
 	  ConversationHeader chatB = controller.newConversation("chatB", p1.id);
 	  ConversationHeader chatC = controller.newConversation("chatC", p1.id);
 	  
-	  HashSet<Uuid, byte> = model.getPermissionSet();
+	  HashSet<Uuid, byte> set = model.getPermissionSet();
 	  
 	}
 

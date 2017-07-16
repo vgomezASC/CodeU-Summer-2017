@@ -353,7 +353,7 @@ public final class ConversationAccessServerTest {
     final Message messageA2 = controller.newMessage(p2.id, chatA.id,
         "cowabungaaaaaaaaaaaa");
         
-    HashMap<Uuid,byte> accessMap = controller.getPermissionMap(chatA);
+    HashMap<Uuid, byte> accessMap = controller.getPermissionMap(chatA);
     controller.addOwner(accessMap.get(p1), p2.id, chatA);
     
     controller.checkMembership(p3, chatA);
@@ -449,7 +449,7 @@ public final class ConversationAccessServerTest {
     // after that.
         
     System.out.println("CHATLOGS");    
-    Message[] conversationIterators = [messageA1, messageB1, messageC1, messageD1];
+    Message[] conversationIterators = {messageA1, messageB1, messageC1, messageD1};
     for (Message m: conversationIterators){
       String convoTitle = view.findConversation(m.conversation).title;
       while (m.next != Uuid.NULL){
