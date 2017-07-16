@@ -83,7 +83,7 @@ public final class ConversationAccessServerTest {
   }
   
   @Test
-  public void testGetAndUpdateAccess {
+  public void testGetAndUpdateAccess(){
     final User creator = controller.newUser("creator");
     final User user = controller.newUser("user");
      
@@ -102,7 +102,7 @@ public final class ConversationAccessServerTest {
   }
   
   @Test
-  public void testAccessSecurity{
+  public void testAccessSecurity(){
     final User creator = controller.newUser("creator"); 
     final User owner = controller.newUser("owner");
     final User member = controller.newUser("member");
@@ -333,7 +333,7 @@ public final class ConversationAccessServerTest {
   // The following test simulates a more realistic situation where different users have
   // different roles in the conversations they contribute to.
   @Test
-  public void multiConversationTest {
+  public void multiConversationTest(){
     User p1 = controller.newUser("p1");
     User p2 = controller.newUser("p2");
     User p3 = controller.newUser("p3");

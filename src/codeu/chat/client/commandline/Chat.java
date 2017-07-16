@@ -41,8 +41,6 @@ import codeu.chat.util.Uuid;
 
 import codeu.chat.common.ServerInfo;
 
-import codeu.chat.common.ServerInfo;
-
 public final class Chat {
 
   // PANELS
