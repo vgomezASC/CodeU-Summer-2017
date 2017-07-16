@@ -73,7 +73,7 @@ public final class Model {
   private final Store<String, Message> messageByText = new Store<>(STRING_COMPARE);
 
   private HashMap<Uuid, InterestSet> interestMap = new HashMap<Uuid, InterestSet>();
-  private HashMap<ConversationHeader, HashMap<Uuid, Byte>> authority = new HashMap<ConversationHeader, HashMap<Uuid, Byte>>();
+  HashMap<String, Object> authority = new HashMap<String, Object>();
   
   public void add(User user) {
     userById.insert(user.id, user);
@@ -100,6 +100,11 @@ public final class Model {
     conversationByTime.insert(conversation.creation, conversation);
     conversationByText.insert(conversation.title, conversation);
     conversationPayloadById.insert(conversation.id, new ConversationPayload(conversation.id));
+    
+    HashMap<Uuid, Byte> accessMap = new HashMap<Uuid, Byte>();
+    byte creatorByte = 0b111;
+    accessMap.put(conversation.owner, creatorByte);
+    authority.put(conversation.title,accessMap);
   }
 
   public StoreAccessor<Uuid, ConversationHeader> conversationById() {
@@ -148,4 +153,9 @@ public final class Model {
     LOG.info("AFTER: "+interestMap.size());
     LOG.info(interestMap.get(id).toString());
   }
+  
+  public HashMap<Uuid, Byte> getPermissionMap(ConversationHeader c){
+	  return (HashMap<Uuid, Byte>) authority.get(c.title);
+  }
+  
 }
