@@ -33,7 +33,7 @@ import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 
 public final class Controller implements RawController, BasicController {
-
+  //Please modify the value here !!!
   public static final byte USER_TYPE_CREATOR = 0x07;
   public static final byte USER_TYPE_OWNER = 0x03;
   public static final byte USER_TYPE_USER = 0x01;

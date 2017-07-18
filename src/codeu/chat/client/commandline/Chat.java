@@ -418,7 +418,7 @@ public final class Chat {
         System.out.println("    List all messages in the current conversation.");
         System.out.println("  m-add <message>");
         System.out.println("    Add a new message to the current conversation as the current user.");
-        System.out.println("  u-authorize <user> <authority>");
+        System.out.println("  m-authorize <user's name> <authority>");
         System.out.println("    Change the authority for user. o:Owner u:User b:Banned");
         System.out.println("  info");
         System.out.println("    Display all info about the current conversation.");
@@ -428,30 +428,30 @@ public final class Chat {
         System.out.println("    Exit the program.");
       }
     });
-    panel.register("u-authorize", new Panel.Command()
+    panel.register("m-authorize", new Panel.Command()
     {
       @Override
       public void invoke(List<String> args) 
       {
         if (args.size() < 2) 
         {
-      	  System.out.println("ERROR: Please provide enough parameters!!!");
+      	  System.out.println("ERROR: Command doesn't follow the format. Please use 'help' for more information.");
       	} 
         else
         {
           String user = args.get(0);
+          String para = args.get(1);
           if(findUser(user) == null)
           {
             System.out.println("ERROR: No such user.");
           }
-          else if(!args.get(1).equals("o") && !args.get(1).equals("u") && !args.get(1).equals("b"))
+          else if(!para.equals("o") && !para.equals("u") && !para.equals("b"))
           {
-            System.out.println(args.get(1));
-            System.out.println("ERROR: Parameter is unacceptable!");
+            System.out.println("ERROR: Parameter '" + para + "' is unacceptable! Please use 'help' for more information.");
           }
           else
           {
-            conversation.changeAuthority(findUser(user), args.get(1));
+            conversation.changeAuthority(findUser(user), para);
           }
         }
       }

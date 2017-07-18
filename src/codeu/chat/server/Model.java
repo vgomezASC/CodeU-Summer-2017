@@ -29,8 +29,9 @@ import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.store.Store;
 import codeu.chat.util.store.StoreAccessor;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-public final class Model {
+public final class Model implements AuthorityModel{
 
   private static final Comparator<Uuid> UUID_COMPARE = new Comparator<Uuid>() {
 
@@ -138,84 +139,52 @@ public final class Model {
     return messageByText;
   }
 
+  @Override
   public void changeAuthority(ConversationHeader conversation, Uuid targetUser, byte authorityByte)
   {
-    LinkedHashMap<Uuid,Byte> userAuthority;
-    if(authority.get(conversation.id) == null)
-    {
-       authority.put(conversation.id, new LinkedHashMap<>());
-    }
-    userAuthority = authority.get(conversation.id);
-    userAuthority.put(targetUser, authorityByte);
+    throw new NotImplementedException();
   }
-
+  @Override
   public boolean isBannedUser(ConversationHeader conversation,Uuid targetUser)
   {
-    LinkedHashMap<Uuid, Byte> userAuthority = authority.get(conversation.id);
-    Byte authoritByte = userAuthority.get(targetUser);
-    return authoritByte != null && authoritByte.byteValue() == Controller.USER_TYPE_BANNED;
+    throw new NotImplementedException();
   }
-
-
+  @Override
   public boolean isBannedUser(Uuid conversation,Uuid targetUser)
   {
-    LinkedHashMap<Uuid, Byte> userAuthority = authority.get(conversation);
-    Byte authoritByte = userAuthority.get(targetUser);
-    return authoritByte != null && authoritByte.byteValue() == Controller.USER_TYPE_BANNED;
+    throw new NotImplementedException();
   }
-
+  @Override
   public boolean isUser(ConversationHeader conversation,Uuid targetUser)
   {
-    LinkedHashMap<Uuid, Byte> userAuthority = authority.get(conversation.id);
-    Byte authoritByte = userAuthority.get(targetUser);
-    if(authoritByte == null)
-    {
-      userAuthority.put(targetUser, Controller.USER_TYPE_USER);
-      return true;
-    }
-    return authoritByte.byteValue() == Controller.USER_TYPE_USER;
+    throw new NotImplementedException();
   }
-
-
-  public boolean isUser(Uuid conversation,Uuid targetUser)
+  @Override
+  public boolean isUser(Uuid conversation,Uuid targetUser) 
   {
-    LinkedHashMap<Uuid, Byte> userAuthority = authority.get(conversation);
-    Byte authoritByte = userAuthority.get(targetUser);
-    if(authoritByte == null)
-    {
-      userAuthority.put(targetUser, Controller.USER_TYPE_USER);
-      return true;
-    }
-    return authoritByte.byteValue() == Controller.USER_TYPE_USER;
+    throw new NotImplementedException();
   }
-  public boolean isOwner(ConversationHeader conversation,Uuid targetUser)  
+  @Override
+  public boolean isOwner(ConversationHeader conversation,Uuid targetUser)
   {
-    LinkedHashMap<Uuid, Byte> userAuthority = authority.get(conversation.id);
-    Byte authoritByte = userAuthority.get(targetUser);
-    return authoritByte != null && authoritByte.byteValue() == Controller.USER_TYPE_OWNER;
+    throw new NotImplementedException();
   }
 
-
+  @Override
   public boolean isOwner(Uuid conversation,Uuid targetUser)
   {
-    LinkedHashMap<Uuid, Byte> userAuthority = authority.get(conversation);
-    Byte authoritByte = userAuthority.get(targetUser);
-    return authoritByte != null && authoritByte.byteValue() == Controller.USER_TYPE_OWNER;
+    throw new NotImplementedException();
   }
-
+  @Override
   public boolean isCreator(ConversationHeader conversation,Uuid targetUser)  
   {
-    LinkedHashMap<Uuid, Byte> userAuthority = authority.get(conversation.id);
-    Byte authoritByte = userAuthority.get(targetUser);
-    return authoritByte != null && authoritByte.byteValue() == Controller.USER_TYPE_CREATOR;
+    throw new NotImplementedException();
   }
 
-
+  @Override
   public boolean isCreator(Uuid conversation,Uuid targetUser)
   {
-    LinkedHashMap<Uuid, Byte> userAuthority = authority.get(conversation);
-    Byte authoritByte = userAuthority.get(targetUser);
-    return authoritByte != null && authoritByte.byteValue() == Controller.USER_TYPE_CREATOR;
+    throw new NotImplementedException();
   }
   
   public InterestSet getInterestSet(Uuid id){
