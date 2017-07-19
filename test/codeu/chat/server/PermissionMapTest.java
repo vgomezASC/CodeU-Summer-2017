@@ -42,9 +42,18 @@ public class PermissionMapTest {
 	  
 	  HashMap<Uuid, Byte> accessMap = model.getPermissionMap(chatA);
 
-	  assertFalse(
+	  assertTrue(
 		  "Check that the correct map was accessed",
-		  !accessMap.containsKey(p1.id));
+		  accessMap.containsKey(p1.id));
+	  
+	  byte creatorByte = 0b111;
+	  
+	  assertTrue(
+		  "Check that the correct value was stored in the map",
+		  accessMap.get(p1.id).byteValue()==creatorByte);
+	  
+	  print();
+	  
 	}
 
 }

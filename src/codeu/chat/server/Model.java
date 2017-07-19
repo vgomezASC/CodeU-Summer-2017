@@ -73,7 +73,7 @@ public final class Model {
   private final Store<String, Message> messageByText = new Store<>(STRING_COMPARE);
 
   private HashMap<Uuid, InterestSet> interestMap = new HashMap<Uuid, InterestSet>();
-  HashMap<String, Object> authority = new HashMap<String, Object>();
+  HashMap<String, HashMap<Uuid, Byte>> authority = new HashMap<String, HashMap<Uuid, Byte>>();
   
   public void add(User user) {
     userById.insert(user.id, user);
@@ -155,7 +155,7 @@ public final class Model {
   }
   
   public HashMap<Uuid, Byte> getPermissionMap(ConversationHeader c){
-	  return (HashMap<Uuid, Byte>) authority.get(c.title);
+	  return authority.get(c.title);
   }
   
 }
