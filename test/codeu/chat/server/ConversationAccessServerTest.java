@@ -26,8 +26,7 @@
  *  - ...server.Controller.addOwner(byte access, Uuid target, ConversationHeader conversation)
  *  - ...server.Controller.ban(byte access, Uuid target, ConversationHeader conversation)
  *  - ...server.Controller.addMember(byte access, Uuid target, ConversationHeader conversation)
- *  - codeu.chat.server.View.getPermissionMapAsString(ConversationHeader conversation)
- *    
+ *       
  */
 
 
@@ -393,136 +392,107 @@ public final class ConversationAccessServerTest {
 		controller.checkMembership(newcomer.id, conversation));  
   }
   
-  // The following test simulates a more realistic situation where different users have
+  // The following tests simulate a more realistic situation where different users have
   // different roles in the conversations they contribute to.
+  
   @Test
-  public void multiConversationTest(){
-    User p1 = controller.newUser("p1");
-    User p2 = controller.newUser("p2");
-    User p3 = controller.newUser("p3");
-    
-    byte trollByte = 0b000;
-    byte memberByte = 0b001;
-    byte ownerByte = 0b011;
-    byte creatorByte = 0b111;
-    
-    ConversationHeader chatA = controller.newConversation("chatA", p1.id);
-    ConversationHeader chatB = controller.newConversation("chatB", p1.id);
-    
-    final Message messageA1 = controller.newMessage(p1.id, chatA.id,
-        "Hello and welcome to the surfing chat. Hang ten dudes~");
-    
-    controller.checkMembership(p2, chatA);
-    final Message messageA2 = controller.newMessage(p2.id, chatA.id,
-        "cowabungaaaaaaaaaaaa");
-        
-    HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(chatA);
-    controller.addOwner(accessMap.get(p1), p2.id, chatA);
-    
-    controller.checkMembership(p3, chatA);
-    final Message messageA3 = controller.newMessage(p3.id, chatA.id,
-        "surfing suxx. landlubbers 4 lyfe (END)");
-    
-    accessMap = controller.getPermissionMap(chatA);    
-    controller.ban(accessMap.get(p2), p3.id, chatA); 
-    
-    final Message messageAFailed = controller.newMessage(p3.id, chatA.id,
-        "BANNED USER ERROR: P3's message shouldn't be seen in chatA");
-        
-    assertFalse("Check that p3 has been successfully banned from chatA",
-        controller.checkMembership(p3, chatA));
-                
-    final Message messageB1 = controller.newMessage(p1.id, chatB.id,
-        "What's up everybody this chat is about outer space.");
-    
-    controller.checkMembership(p2, chatB);    
-    accessMap = controller.getPermissionMap(chatB);
-    controller.addOwner(accessMap.get(p1), p3.id, chatB);
-    
-    final Message messageB2 = controller.newMessage(p2.id, chatB.id,
-        "I like Saturn");
-    final Message messageB3 = controller.newMessage(p3.id, chatB.id,
-        "the moon is my friend (END)");
-    
-    ConversationHeader chatC = controller.newConversation("chatC", p2.id);
-    
-    accessMap = controller.getPermissionMap(chatC);
-    controller.ban(accessMap.get(p2), p1.id, chatC);
-    
-    final Message messageCFailed1 = controller.newMessage(p1.id, chatC.id,
-        "BANNED USER ERROR: P1's message shouldn't be seen in chatC");
-    
-    final Message messageC1 = controller.newMessage(p2.id, chatC.id,
-        "beep boop I love soup");
-    
-    assertFalse(
-        "Check that conversation so far started with a member",
-        !view.findMessage(messageC1.previous).equals(messageCFailed1));
-    
-    accessMap = controller.getPermissionMap(chatC);
-    controller.ban(accessMap.get(p2), p3.id, chatC);
-    
-    final Message messageCFailed2 = controller.newMessage(p3.id, chatC.id,
-        "BANNED USER ERROR: P3's message shouldn't be seen in chatC");
-        
-    final Message messageC2 = controller.newMessage(p2.id, chatC.id,
-        "anyway how are you all doing tonight? (END)");
-    
-    ConversationHeader chatD = controller.newConversation("chatD", p3.id);
-    
-    controller.checkMembership(p2, chatD);
-    final Message messageD1 = controller.newMessage(p2.id, chatD.id,
-        "ever notice that not every conversation begins the same way?");
-    final Message messageD2 = controller.newMessage(p2.id, chatD.id,
-        "anyway, don't ask me about my double-dipping crimes");
-    final Message messageD3 = controller.newMessage(p3.id, chatD.id,
-        "NO DOUBLE-DIPPERS IN CHAT D ON MY WATCH, PUNK (END)");
-    accessMap = controller.getPermissionMap(chatD);
-    controller.ban(accessMap.get(p3),p2.id, chatD);
-    
-    final Message messageDFailed = controller.newMessage(p2.id, chatD.id,
-        "BANNED USER ERROR: P2's message shouldn't be seen in chatD");
-    
-    // So here's Phase 1 of how this test checks this real-life scenario:
-    // We're gonna need a method like getPermissionMap except once it has the map,
-    // it converts all the contents into a nice String. Once we got that under control,
-    // we'll upgrade these strings to something that'll work nicely with it.
-        
-    String aStr, bStr, cStr, dStr;  
-    
-    assertFalse(
-        "Check that the final state of Chat A's map is correct", 
-        !aStr.equals(view.getPermissionMapAsString(chatA)));
-        
-    assertFalse(
-        "Check that the final state of Chat B's map is correct", 
-        !bStr.equals(view.getPermissionMapAsString(chatB)));
-        
-    assertFalse(
-        "Check that the final state of Chat C's map is correct", 
-        !cStr.equals(view.getPermissionMapAsString(chatC)));
-        
-    assertFalse(
-        "Check that the final state of Chat D's map is correct", 
-        !dStr.equals(view.getPermissionMapAsString(chatD)));
-    
-    
-    // Phase 2 checks each chatlog to ensure no banned member was able to write in.
-    // Every chat's ending message has (END) in it and a banned member will try to write 
-    // after that.
-        
-    System.out.println("CHATLOGS");    
-    Message[] conversationIterators = {messageA1, messageB1, messageC1, messageD1};
-    for (Message m: conversationIterators){
-      String convoTitle = view.findConversation(m.conversation).title;
-      while (m.next != Uuid.NULL){
-        m = view.findMessage(m.next);
-        if (m.content.equals(messageCFailed1.content))
-          System.out.println("ERROR: banned user successfully wrote to chatC!");
-      };
-      assertFalse("Check that "+convoTitle+"'s last message has the proper end",
-      !(m.content.indexOf("(END)")>= 0));
-    }   
+  public void byteReferenceCompatibilityTest() {
+	ConversationHeader conversation = spawnTestConversation();
+	User owner = controller.newUser("owner");
+	
+	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
+	controller.addOwner(accessMap.get(conversation.owner),owner,conversation);
+	accessMap = controller.getPermissionMap(conversation);
+
+	assertTrue(
+		"Check that .addOwner and similar methods work with indirect byte references",
+		accessMap.get(owner.id).byteValue()==ownerByte);
+  }
+  
+  @Test
+  public void tandemRoleStorageTest() {
+	ConversationHeader chatA = spawnTestConversation();
+	User p2 = spawnMember(chatA);
+	User p3 = spawnOwner(chatA);
+		
+	ConversationHeader chatB = controller.newConversation("chatB", creator.id);
+	controller.ban(creatorByte, p3.id, chatB);
+		
+	HashMap<Uuid, Byte> rightMap = new HashMap<Uuid, Byte>();
+	rightMap.put(chatA.id, creatorByte);
+	rightMap.put(p2.id, memberByte);
+	rightMap.put(p3.id, ownerByte);
+		
+	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(chatA);
+		
+	assertTrue(accessMap.equals(rightMap));
+		
+	rightMap.clear();
+	rightMap.put(p2.id, creatorByte);
+	rightMap.put(p3.id, trollByte);
+		
+	accessMap = controller.getPermissionMap(chatB);
+		
+	assertTrue(accessMap.equals(rightMap)); 
+  }
+  
+  @Test
+  public void earlyBanReadWriteTest() {
+	ConversationHeader conversation = spawnTestConversation();
+	User troll = spawnMember(conversation);
+	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
+	controller.ban(accessMap.get(conversation.owner),troll.id, conversation);
+	
+	final Message messageFailed = controller.newMessage(troll.id, conversation.id,
+	    "BANNED USER ERROR: P1's message shouldn't be seen in chatC");
+	    
+	final Message message1 = controller.newMessage(conversation.owner, conversation.id,
+	    "beep boop I love soup");
+	    
+	assertFalse(
+	    "Check that conversation so far started with a member",
+	    view.findMessage(message1.previous).equals(messageFailed));
+  }
+  
+  @Test
+  public void nestledBanReadWriteTest() {
+	ConversationHeader conversation = spawnTestConversation();
+	User troll = spawnMember(conversation);  
+		
+	final Message message1 = controller.newMessage(conversation.owner, conversation.id,
+		"beep boop I love soup");
+		
+	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
+	controller.ban(accessMap.get(conversation.owner),troll.id, conversation);
+		
+	final Message messageFailed = controller.newMessage(troll.id, conversation.id,
+		"BANNED USER ERROR: P1's message shouldn't be seen in chatC");
+	
+	final Message message2 = controller.newMessage(conversation.owner, conversation.id,
+		"anyway, that's all, signing off now");
+	
+	assertTrue(
+		"Check that conversation contains no troll messages",
+		view.findMessage(message1.next).equals(message2));  
+  }
+  
+  @Test
+  public void finalBanReadWriteTest() {
+	ConversationHeader conversation = spawnTestConversation();
+	User troll = spawnMember(conversation);  
+	
+	final Message message1 = controller.newMessage(conversation.owner, conversation.id,
+		"beep boop I love soup");
+	
+	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
+	controller.ban(accessMap.get(conversation.owner),troll.id, conversation);
+	
+	final Message messageFailed = controller.newMessage(troll.id, conversation.id,
+		"BANNED USER ERROR: P1's message shouldn't be seen in chatC");
+	
+	assertNull(
+		"Check that conversation ended with a member",
+		view.findMessage(message1.next));
   }
   
   private ConversationHeader spawnTestConversation(){
