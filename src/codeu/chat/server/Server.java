@@ -90,7 +90,7 @@ public final class Server {
         final User targetUser = User.SERIALIZER.read(in);
         final User fromUser = User.SERIALIZER.read(in);
         final String parameterString = Serializers.STRING.read(in);
-        if(model.isUser(conversation, fromUser.id) || model.isBannedUser(conversation, fromUser.id))
+        if(!model.isMember(conversation, fromUser.id))
         {
           Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
         }
@@ -114,7 +114,7 @@ public final class Server {
         final Uuid conversation = Uuid.SERIALIZER.read(in);
         final String content = Serializers.STRING.read(in);
 
-        if(model.isBannedUser(conversation, author))
+        if(!model.isMember(conversation, author))
         {
           Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
         }
@@ -207,7 +207,7 @@ public final class Server {
         final ConversationHeader conversation = ConversationHeader.SERIALIZER.read(in);
         final User user = User.SERIALIZER.read(in);
         final Collection<Uuid> ids = Serializers.collection(Uuid.SERIALIZER).read(in);
-        if(model.isBannedUser(conversation, user.id))
+        if(!model.isMember(conversation, user.id))
         {
           Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
         }

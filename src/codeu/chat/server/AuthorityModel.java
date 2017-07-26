@@ -1,11 +1,13 @@
+package codeu.chat.server;
+
+import codeu.chat.common.ConversationHeader;
+import codeu.chat.util.Uuid;
+
 public interface AuthorityModel
 {
   public void changeAuthority(ConversationHeader conversation, Uuid targetUser, byte authorityByte);
-
-  public boolean isBannedUser(ConversationHeader conversation,Uuid targetUser);
-  public boolean isBannedUser(Uuid conversation,Uuid targetUser);
-  public boolean isUser(ConversationHeader conversation,Uuid targetUser);
-  public boolean isUser(Uuid conversation,Uuid targetUser);
+  public boolean isMember(ConversationHeader conversation,Uuid targetUser);
+  public boolean isMember(Uuid conversation,Uuid targetUser);
   public boolean isOwner(ConversationHeader conversation,Uuid targetUser);
   public boolean isOwner(Uuid conversation,Uuid targetUser);
   public boolean isCreator(ConversationHeader conversation,Uuid targetUser);

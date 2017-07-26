@@ -418,7 +418,7 @@ public final class Chat {
         System.out.println("    List all messages in the current conversation.");
         System.out.println("  m-add <message>");
         System.out.println("    Add a new message to the current conversation as the current user.");
-        System.out.println("  m-authorize <user's name> <authority>");
+        System.out.println("  m-auth <user's name> <authority>");
         System.out.println("    Change the authority for user. o:Owner u:User b:Banned");
         System.out.println("  info");
         System.out.println("    Display all info about the current conversation.");
@@ -428,7 +428,7 @@ public final class Chat {
         System.out.println("    Exit the program.");
       }
     });
-    panel.register("m-authorize", new Panel.Command()
+    panel.register("m-auth", new Panel.Command()
     {
       @Override
       public void invoke(List<String> args) 

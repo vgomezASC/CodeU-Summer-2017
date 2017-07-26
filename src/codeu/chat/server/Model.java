@@ -29,7 +29,7 @@ import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.store.Store;
 import codeu.chat.util.store.StoreAccessor;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;//Delete this!
 
 public final class Model implements AuthorityModel{
 
@@ -145,22 +145,12 @@ public final class Model implements AuthorityModel{
     throw new NotImplementedException();
   }
   @Override
-  public boolean isBannedUser(ConversationHeader conversation,Uuid targetUser)
+  public boolean isMember(ConversationHeader conversation,Uuid targetUser)
   {
     throw new NotImplementedException();
   }
   @Override
-  public boolean isBannedUser(Uuid conversation,Uuid targetUser)
-  {
-    throw new NotImplementedException();
-  }
-  @Override
-  public boolean isUser(ConversationHeader conversation,Uuid targetUser)
-  {
-    throw new NotImplementedException();
-  }
-  @Override
-  public boolean isUser(Uuid conversation,Uuid targetUser) 
+  public boolean isMember(Uuid conversation,Uuid targetUser) 
   {
     throw new NotImplementedException();
   }
