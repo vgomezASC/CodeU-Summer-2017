@@ -102,8 +102,8 @@ public final class ConversationContext {
     return null;
   }
   
-  public void changeAuthority(User targetUser, String authorityParameter)
+  public void changeAuthority(Uuid targetUser, String authorityParameter)
   {
-    controller.authorityModificationRequest(conversation, targetUser, user, authorityParameter);
+    controller.authorityModificationRequest(conversation.id, targetUser, user.id, authorityParameter);
   }
 }

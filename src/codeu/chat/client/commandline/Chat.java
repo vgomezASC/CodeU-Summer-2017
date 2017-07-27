@@ -448,7 +448,7 @@ public final class Chat {
           }
           else
           {
-            conversation.changeAuthority(findUser(user), para);
+            conversation.changeAuthority(findUser(user).id, para);
           }
         }
       }

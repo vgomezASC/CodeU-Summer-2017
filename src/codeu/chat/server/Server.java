@@ -86,15 +86,15 @@ public final class Server {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException
       {
-        final ConversationHeader conversation = ConversationHeader.SERIALIZER.read(in);
-        final User targetUser = User.SERIALIZER.read(in);
-        final User fromUser = User.SERIALIZER.read(in);
+        final Uuid conversation = Uuid.SERIALIZER.read(in);
+        final Uuid targetUser = Uuid.SERIALIZER.read(in);
+        final Uuid fromUser = Uuid.SERIALIZER.read(in);
         final String parameterString = Serializers.STRING.read(in);
-        if(!model.isMember(conversation, fromUser.id))
+        if(!model.isMember(conversation, fromUser))
         {
           Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
         }
-        else if(model.isOwner(conversation, fromUser.id) && model.isCreator(conversation, targetUser.id))
+        else if(model.isOwner(conversation, fromUser) && model.isCreator(conversation, targetUser))
         {
           Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
         }

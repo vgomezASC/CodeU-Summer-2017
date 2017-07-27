@@ -140,12 +140,7 @@ public final class Model implements AuthorityModel{
   }
 
   @Override
-  public void changeAuthority(ConversationHeader conversation, Uuid targetUser, byte authorityByte)
-  {
-    throw new NotImplementedException();
-  }
-  @Override
-  public boolean isMember(ConversationHeader conversation,Uuid targetUser)
+  public void changeAuthority(Uuid conversation, Uuid targetUser, byte authorityByte)
   {
     throw new NotImplementedException();
   }
@@ -154,19 +149,9 @@ public final class Model implements AuthorityModel{
   {
     throw new NotImplementedException();
   }
-  @Override
-  public boolean isOwner(ConversationHeader conversation,Uuid targetUser)
-  {
-    throw new NotImplementedException();
-  }
 
   @Override
   public boolean isOwner(Uuid conversation,Uuid targetUser)
-  {
-    throw new NotImplementedException();
-  }
-  @Override
-  public boolean isCreator(ConversationHeader conversation,Uuid targetUser)  
   {
     throw new NotImplementedException();
   }

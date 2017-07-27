@@ -157,14 +157,14 @@ final class Controller implements BasicController {
     
   }
 
-  public void authorityModificationRequest(ConversationHeader conversation, User targetUser, User user, String parameterString)
+  public void authorityModificationRequest(Uuid conversation, Uuid targetUser, Uuid user, String parameterString)
   {
     try(final Connection connection = this.source.connect())
     {
       Serializers.INTEGER.write(connection.out(), NetworkCode.CONVERSATION_AUTHORITY_REQUEST);
-      ConversationHeader.SERIALIZER.write(connection.out(), conversation);
-      User.SERIALIZER.write(connection.out(), targetUser);
-      User.SERIALIZER.write(connection.out(), user);
+      Uuid.SERIALIZER.write(connection.out(), conversation);
+      Uuid.SERIALIZER.write(connection.out(), targetUser);
+      Uuid.SERIALIZER.write(connection.out(), user);
       Serializers.STRING.write(connection.out(), parameterString);
 
       int reply = Serializers.INTEGER.read(connection.in());

@@ -167,7 +167,7 @@ public final class Controller implements RawController, BasicController {
     return user;
   }
   @Override
-  public void authorityModificationRequest(ConversationHeader conversation, User targetUser, User fromUser, String parameterString)
+  public void authorityModificationRequest(Uuid conversation, Uuid targetUser, Uuid fromUser, String parameterString)
   {
     byte authorityByte = 0;
     if(parameterString.equals("o"))
@@ -182,7 +182,7 @@ public final class Controller implements RawController, BasicController {
     {
       authorityByte = USER_TYPE_BANNED;
     }
-    model.changeAuthority(conversation, targetUser.id, authorityByte);
+    model.changeAuthority(conversation, targetUser, authorityByte);
   }
   @Override
   public ConversationHeader newConversation(Uuid id, String title, Uuid owner, Time creationTime) {
@@ -195,7 +195,7 @@ public final class Controller implements RawController, BasicController {
       conversation = new ConversationHeader(id, owner, creationTime, title);
       model.add(conversation);
       localFile.addConversationHeader(conversation);
-      model.changeAuthority(conversation, owner, USER_TYPE_CREATOR);
+      model.changeAuthority(conversation.id, owner, USER_TYPE_CREATOR);
       LOG.info("Conversation added: " + id);
     }
 
