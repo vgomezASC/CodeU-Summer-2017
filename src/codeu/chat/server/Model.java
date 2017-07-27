@@ -143,7 +143,11 @@ public final class Model implements AuthorityModel {
   
   @Override
   public void changeAuthority(Uuid conversation, Uuid targetUser, byte authorityByte){
-    System.out.println("Changing authority...but how?");
+	StoreAccessor<Uuid, ConversationHeader> convos = this.conversationById();
+	ConversationHeader chat = convos.first(conversation);
+	HashMap<Uuid, Byte> accessMap = this.getPermissionMap(chat);
+	accessMap.put(targetUser, authorityByte);
+	authority.put(chat.title, accessMap);
   }
   
   @Override
@@ -170,6 +174,9 @@ public final class Model implements AuthorityModel {
   public boolean isOwner(ConversationHeader conversation,Uuid targetUser){
 	HashMap<Uuid, Byte> accessMap = this.getPermissionMap(conversation);
 	byte user = accessMap.get(targetUser);
+	byte expected = 0b010;
+	if((expected & user) == expected)
+		return true;
 	return false;
   }
   
@@ -179,6 +186,9 @@ public final class Model implements AuthorityModel {
 	ConversationHeader chat = convos.first(conversation);
 	HashMap<Uuid, Byte> accessMap = this.getPermissionMap(chat);
 	byte user = accessMap.get(targetUser);
+	byte expected = 0b010;
+	if((expected & user) == expected)
+		return true;
 	return false;
   }
    
@@ -186,6 +196,9 @@ public final class Model implements AuthorityModel {
   public boolean isCreator(ConversationHeader conversation,Uuid targetUser){
 	HashMap<Uuid, Byte> accessMap = this.getPermissionMap(conversation);
 	byte user = accessMap.get(targetUser);
+	byte expected = 0b111;
+	if((expected & user) == expected)
+		return true;
 	return false;
   }
   
@@ -195,6 +208,9 @@ public final class Model implements AuthorityModel {
 	ConversationHeader chat = convos.first(conversation);
 	HashMap<Uuid, Byte> accessMap = this.getPermissionMap(chat);
 	byte user = accessMap.get(targetUser);
+	byte expected = 0b111;
+	if((expected & user) == expected)
+		return true;
 	return false;
   }
   
