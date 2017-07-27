@@ -21,18 +21,17 @@ import org.junit.runner.notification.Failure;
 public final class TestRunner {
   public static void main(String[] args) {
      final Result result =
-         JUnitCore.runClasses(codeu.chat.server.PermissionMapTest.class);
-            /* codeu.chat.common.SecretTest.class,
+         JUnitCore.runClasses(
+             codeu.chat.common.SecretTest.class,
              codeu.chat.relay.ServerTest.class,
              codeu.chat.server.BasicControllerTest.class,
              codeu.chat.server.RawControllerTest.class, 
              codeu.chat.server.ConversationAccessServerTest.class,
-             codeu.chat.server.PermissionMapTest.class,
              codeu.chat.util.TimeTest.class,
              codeu.chat.util.UuidTest.class,
              codeu.chat.util.store.StoreTest.class,
              codeu.chat.util.TokenizerTest.class
-         );*/
+         );
       for (final Failure failure : result.getFailures()) {
          System.out.println(failure.toString());
       }

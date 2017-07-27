@@ -19,14 +19,9 @@
  *  that changes the names of what I have listed here. ~ Sarah Abowitz
  *
  *  Replaceable parts:
- *  - codeu.chat.server.Controller.getPermissionMap(ConversationHeader conversation)
  *  - codeu.chat.server.Controller.updatePermissionMap(Uuid id, HashMap<Uuid, byte> accessMap)
- *  - codeu.chat.server.Controller.checkMembership(Uuid id, ConversationHeader conversation)
- *  - ...server.Controller.demoteOwner(byte access, Uuid target, ConversationHeader conversation)
- *  - ...server.Controller.addOwner(byte access, Uuid target, ConversationHeader conversation)
- *  - ...server.Controller.ban(byte access, Uuid target, ConversationHeader conversation)
- *  - ...server.Controller.addMember(byte access, Uuid target, ConversationHeader conversation)
- *       
+ *  (changeAuthority's closest cousin. However, don't sub in that method!!)
+ *         
  */
 
 
@@ -76,13 +71,21 @@ public final class ConversationAccessServerTest {
         "conversation",
         user.id);
 
-    assertFalse(
-        "Check that conversation has a valid reference",
-        conversation == null);    
-        
     assertNotNull(
-         "Check that user has a conversation access map",
-          controller.getPermissionMap(conversation));
+        "Check that conversation has a valid reference",
+        conversation);    
+        
+    HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
+    HashMap<Uuid, Byte> rightMap = new HashMap<Uuid, Byte>();
+    rightMap.put(user.id, creatorByte);
+
+    assertNotNull(
+        "Check that conversation has an access map",
+        accessMap);
+    
+    assertEquals(
+    	"Check that the accessMap is correctly stored",
+    	accessMap,rightMap);
   }
   
   @Test
@@ -91,41 +94,58 @@ public final class ConversationAccessServerTest {
     final User user = controller.newUser("user");
      
     ConversationHeader conversation = controller.newConversation("chat", creator.id);
-    HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
+    HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
+    HashMap<Uuid, Byte> rightMap = new HashMap<Uuid, Byte>();
     
     byte memberByte = 0b001; // Before testing, this must be the equivalent of 001.
     
     accessMap.put(user.id, memberByte);
     controller.updatePermissionMap(conversation, accessMap);
+    rightMap.put(user.id, memberByte);
     
-    assertTrue(
-        "Check that the allowances can be updated",
-        controller.getPermissionMap(conversation).size()== 1);
-    
+    assertEquals(
+        "Check that the accessMap is correctly stored",
+        accessMap,rightMap);
   }
+  
+  @Test
+  public void mainPermissionMapAccessTest(){
+	User p1 = controller.newUser("p1");
+	ConversationHeader chatA = controller.newConversation("chatA", p1.id);
+	  
+	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(chatA);
+
+	assertTrue(
+		"Check that the correct map was accessed",
+		accessMap.containsKey(p1.id));
+	  
+	assertEquals(
+		"Check that the correct value was stored in the map",
+		accessMap.get(p1.id).byteValue(),creatorByte); 
+	}
   
   @Test
   public void secureCreatorByteTest(){
 	ConversationHeader conversation = spawnTestConversation();
-    HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
+    HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
   
-    assertTrue(
+    assertEquals(
         "Check that the creator's byte is 111",
-        accessMap.get(creator.id).byteValue()==creatorByte);
+        accessMap.get(conversation.owner).byteValue(),creatorByte);
     
     assertTrue(
         "Check that creator can access chat",
-        controller.checkMembership(creator.id, conversation));
+        model.isMember(conversation, conversation.owner));
   }
   
   @Test
   public void secureOwnerByteTest(){
 	ConversationHeader conversation = spawnTestConversation();
-	final User owner = spawnOwner(conversation);	
+	final User owner = spawnOwner(conversation, "owner");	
 	
 	assertTrue(
 	    "Check that owners can access chat",
-	    controller.checkMembership(owner.id, conversation));  
+	    model.isMember(conversation, owner.id));  
   }
   
   @Test
@@ -134,16 +154,12 @@ public final class ConversationAccessServerTest {
 	final User member = controller.newUser("member");
 	assertTrue(
 		"Check automatic membership for newcomers to chat",
-		controller.checkMembership(member.id, conversation));
-		    	
-	assertTrue(
-		"Check that members can access chat",
-		controller.checkMembership(member.id, conversation));
-		    
-	accessMap = controller.getPermissionMap(conversation);
-	assertFalse(
+		model.isMember(conversation, member.id));
+		    		    
+	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
+	assertEquals(
 		"Check that newcomer byte is 001",
-		accessMap.get(member.id).byteValue()==memberByte);
+		accessMap.get(member.id).byteValue(),memberByte);
   }
   
   @Test
@@ -153,262 +169,253 @@ public final class ConversationAccessServerTest {
     
     assertFalse(
         "Check that trolls cannot access chat",
-        controller.checkMembership(troll.id, conversation));
+        model.isMember(conversation, troll.id));
   }
   
   @Test
   public void noIllegalOwnersAddedTest(){
 	ConversationHeader conversation = spawnTestConversation();
 	Uuid[] users = spawnRest(conversation);
-	  
-	controller.addOwner(creatorByte, users[0], conversation);
-	controller.addOwner(creatorByte, conversation.owner, conversation);
-	controller.addOwner(ownerByte, users[1], conversation);
-	controller.addOwner(memberByte,users[1], conversation);
-	controller.addOwner(trollByte, users[1], conversation);
-	  
-	assertTrue(
+	
+	controller.authorityModificationRequest(conversation.id, users[0], conversation.owner, "o");
+	controller.authorityModificationRequest(conversation.id, conversation.owner, conversation.owner, "o");
+	controller.authorityModificationRequest(conversation.id, users[1], users[0], "o");
+	controller.authorityModificationRequest(conversation.id, users[1], users[1], "o");
+	controller.authorityModificationRequest(conversation.id, users[1], users[2], "o");
+	
+	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
+	
+	assertEquals(
 		"Check that illegal cases of addOwner do nothing",
-		accessMap.equals(controller.getPermissionMap(conversation)));  
+		accessMap, model.getPermissionMap(conversation));  
   }
   
   @Test
   public void properDemotionTest(){
 	ConversationHeader conversation = spawnTestConversation();
 	Uuid[] users = spawnRest(conversation);
-		
-	controller.demoteOwner(creatorByte, conversation.owner, conversation);
-	controller.demoteOwner(creatorByte, users[1], conversation);
-	controller.demoteOwner(memberByte,users[0], conversation);
-	controller.demoteOwner(ownerByte, users[0], conversation);
-	controller.demoteOwner(trollByte, users[0], conversation);
-	  
-	assertTrue(
-		"Check that illegal cases of demoteOwner do nothing",
-		accessMap.equals(controller.getPermissionMap(conversation)));
 	
-	controller.demoteOwner(creatorByte, users[0], conversation);
-    HashMap<Uuid,Byte> accessMap = controller.getPermissionMap(conversation);
+	controller.authorityModificationRequest(conversation.id, conversation.owner, conversation.owner, "m");
+	controller.authorityModificationRequest(conversation.id, users[1], conversation.owner, "m");
+	controller.authorityModificationRequest(conversation.id, users[0], users[1], "m");
+	controller.authorityModificationRequest(conversation.id, users[0], users[0], "m");
+	controller.authorityModificationRequest(conversation.id, users[0], users[2], "m");
+	
+	HashMap<Uuid,Byte> accessMap = model.getPermissionMap(conversation);
+	
+	assertEquals(
+		"Check that illegal cases of demoteOwner do nothing",
+		accessMap, model.getPermissionMap(conversation));
+	
+	controller.authorityModificationRequest(conversation.id, users[0], conversation.owner, "m");
+    accessMap = model.getPermissionMap(conversation);
     
-    assertTrue(
+    assertEquals(
         "Check that only creators demote owners to members",
-        accessMap.get(users[0]).byteValue()==memberByte); 
+        accessMap.get(users[0]).byteValue(), memberByte); 
     
-    controller.addOwner(creatorByte, users[0], conversation);
+    controller.authorityModificationRequest(conversation.id, users[0], conversation.owner, "o");
     
-    assertTrue(
+    assertEquals(
         "Check that only creators make members become owners",
-        accessMap.get(users[0]).byteValue()==ownerByte);
+        accessMap.get(users[0]).byteValue(), ownerByte);
   }
   
   @Test
   public void noIllegalBansTest(){
 	ConversationHeader conversation = spawnTestConversation();
-	User owner = spawnOwner(conversation);
+	Uuid[] users = spawnRest(conversation);
 	User newcomer = controller.newUser("newcomer");
     
-    controller.ban(trollByte, newcomer.id, conversation);    
-    controller.ban(creatorByte, conversation.owner, conversation);
-    controller.ban(ownerByte, conversation.owner, conversation);
-    controller.ban(memberByte,owner.id, conversation);
-    controller.ban(trollByte, owner.id, conversation);
-    controller.ban(creatorByte, conversation.owner, conversation);
+	controller.authorityModificationRequest(conversation.id, newcomer.id, users[2], "b");
+	controller.authorityModificationRequest(conversation.id, conversation.owner, conversation.owner, "b");    
+	controller.authorityModificationRequest(conversation.id, conversation.owner, users[0], "b");
+	controller.authorityModificationRequest(conversation.id, users[0], users[1], "b");
+	controller.authorityModificationRequest(conversation.id, users[0], users[2], "b");
     
-    assertTrue(
+    assertEquals(
         "Check that illegal cases of banning do nothing",
-        accessMap.equals(controller.getPermissionMap(conversation)));
+        accessMap, model.getPermissionMap(conversation));
   }
   
   @Test
   public void creatorOwnerBanAddTest(){
 	ConversationHeader conversation = spawnTestConversation();
-	final User badOwner = spawnOwner(conversation);
+	final User badOwner = spawnOwner(conversation, "owner");
 	
-	controller.ban(creatorByte, badOwner.id, conversation);
-	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);  
+	controller.authorityModificationRequest(conversation.id, badOwner.id, conversation.owner, "b");
+	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);  
 	
-	assertTrue(
+	assertEquals(
 	    "Check that a creator can ban an owner",
-	    accessMap.get(badOwner.id).byteValue()==trollByte);
+	    accessMap.get(badOwner.id).byteValue(), trollByte);
 	    
 	assertFalse(
 	    "Check that banned owner #1 cannot read/write messages",
-	    controller.checkMembership(badOwner.id, conversation));
+	    model.isMember(conversation, badOwner.id));
 	
-	controller.addMember(creatorByte, badOwner.id, conversation);
-	accessMap = controller.getPermissionMap(conversation);
+	controller.authorityModificationRequest(conversation.id, badOwner.id, conversation.owner, "m");
+	accessMap = model.getPermissionMap(conversation);
 	
-	assertTrue(
+	assertEquals(
 	    "Check that a creator can add a banned member back to their chat",
-	    accessMap.get(badOwner.id).byteValue()==memberByte);
+	    accessMap.get(badOwner.id).byteValue(), memberByte);
 	        
 	assertTrue(
 	    "Check that added member #1 can join conversation",
-	    controller.checkMembership(badOwner1.id, conversation));	
+	    model.isMember(conversation, badOwner.id));	
   }
   
   @Test
   public void creatorBansMemberTest(){
 	ConversationHeader conversation = spawnTestConversation();
 	User badMember = spawnMember(conversation);
-	  
-	controller.ban(creatorByte, badMember.id, conversation);
-	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
 	
-	assertTrue(
+	controller.authorityModificationRequest(conversation.id, badMember.id, conversation.owner, "b");
+	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
+	
+	assertEquals(
 	    "Check that a creator can ban a member",
-	    accessMap.get(member.id).byteValue()==trollByte); 
+	    accessMap.get(badMember.id).byteValue(), trollByte); 
 	    
 	assertFalse(
 	    "Check that banned member #1 cannot read/write messages",
-	    controller.checkMembership(member.id, conversation));
+	    model.isMember(conversation, badMember.id));
   }
   
   @Test
   public void creatorBansNewcomerTest(){
 	ConversationHeader conversation = spawnTestConversation();
 	User badNewcomer = controller.newUser("badNewcomer");
-	  
-	controller.ban(creatorByte, badNewcomer.id, conversation);
-    HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
+	
+	controller.authorityModificationRequest(conversation.id, badNewcomer.id, conversation.owner, "b");
+    HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
     
-    assertTrue(
+    assertEquals(
         "Check that an owner can ban newcomers",
-        accessMap.get(badNewcomer.id).byteValue()==trollByte);
+        accessMap.get(badNewcomer.id).byteValue(),trollByte);
         
     assertFalse(
         "Check that banned newcomer #1 cannot join conversation",
-        controller.checkMembership(badNewcomer.id, conversation));
+        model.isMember(conversation, badNewcomer.id));
   }
   
   @Test
   public void ownerBanAddTest(){
 	ConversationHeader conversation = spawnTestConversation();
-	User owner = spawnOwner(conversation);
+	User goodOwner = spawnOwner(conversation, "goodOwner");
+	User badOwner = spawnOwner(conversation, "badOwner");
 	
-	controller.ban(ownerByte, owner.id, conversation);
-	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
+	controller.authorityModificationRequest(conversation.id, badOwner.id, goodOwner.id, "b");
+	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
 	
-	assertTrue(
+	assertEquals(
 	    "Check that an owner can ban other owners",
-	    accessMap.get(owner.id).byteValue()==trollByte);
+	    accessMap.get(badOwner.id).byteValue(), trollByte);
 	    
 	assertFalse(
 	    "Check that banned owner #2 cannot read/write messages",
-	    controller.checkMembership(owner.id, conversation));
+	    model.isMember(conversation, badOwner.id));
 	
-	controller.addMember(ownerByte, owner.id, conversation);
-	accessMap = controller.getPermissionMap(conversation);
+	controller.authorityModificationRequest(conversation.id, badOwner.id, goodOwner.id, "m");
+	accessMap = model.getPermissionMap(conversation);
 	
-	assertTrue(
+	assertEquals(
 	    "Check that an owner can add a banned member back to their chat",
-	    accessMap.get(owner.id).byteValue()==memberByte);
+	    accessMap.get(badOwner.id).byteValue(), memberByte);
 	    
 	assertTrue(
 	    "Check that added member #2 can join conversation",
-	    controller.checkMembership(owner.id, conversation));
+	    model.isMember(conversation, badOwner.id));
   }
   
   @Test
   public void ownerBansMemberTest(){
 	ConversationHeader conversation = spawnTestConversation();
-	User badMember = spawnMember(conversation);
+	Uuid[] users = spawnRest(conversation);
 	
-	controller.ban(ownerByte, badMember.id, conversation);
-	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
+	controller.authorityModificationRequest(conversation.id, users[1], users[0], "b");
+	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
 	
-	assertTrue(
+	assertEquals(
 	    "Check that an owner can ban members",
-	    accessMap.get(badMember.id).byteValue()==trollByte);
+	    accessMap.get(users[1]).byteValue(), trollByte);
 
 	assertFalse(
 	    "Check that banned member #2 cannot read/write messages",
-	    controller.checkMembership(badMember.id, conversation));
+	    model.isMember(conversation, users[1]));
   }
   
   @Test
   public void ownerBansNewcomerTest(){
 	ConversationHeader conversation = spawnTestConversation();
 	User badNewcomer = controller.newUser("newcomer");
+	User owner = spawnOwner(conversation, "owner");
 	
-	controller.ban(ownerByte, badNewcomer.id, conversation); 
-	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
+	controller.authorityModificationRequest(conversation.id, badNewcomer.id, owner.id, "b");
+	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
 	
-	assertTrue(
+	assertEquals(
 	    "Check that an owner can ban newcomers",
-	    accessMap.get(badNewcomer.id).byteValue()==trollByte);
+	    accessMap.get(badNewcomer.id).byteValue(), trollByte);
 	    
 	assertFalse(
 	    "Check that banned newcomer #1 cannot join conversation",
-	    controller.checkMembership(badNewcomer.id, conversation));
+	    model.isMember(conversation, badNewcomer.id));
   }
   
   @Test
   public void noIllegalMembersAddedTest(){
 	ConversationHeader conversation = spawnTestConversation();
 	Uuid[] users = spawnRest(conversation);
-	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
+	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
 	
-	controller.addMember(creatorByte, users[0], conversation);
-    controller.addMember(ownerByte, conversation.owner, conversation);
-    controller.addMember(ownerByte, users[1], conversation);
-    controller.addMember(memberByte, users[2], conversation);
-    controller.addMember(trollByte, users[1], conversation);
+	controller.authorityModificationRequest(conversation.id, users[0], conversation.owner, "m");
+	controller.authorityModificationRequest(conversation.id, conversation.owner, users[0], "m");
+	controller.authorityModificationRequest(conversation.id, users[1], users[0], "m");
+	controller.authorityModificationRequest(conversation.id, users[2], users[1], "m");
+	controller.authorityModificationRequest(conversation.id, users[1], users[2], "m");
     
-    assertTrue(
+    assertEquals(
         "Check that illegal cases of addMember do nothing",
-        accessMap.equals(controller.getPermissionMap(conversation)));
+        accessMap, model.getPermissionMap(conversation));
   }
   
   @Test
   public void creatorAddsNewcomerTest(){
 	ConversationHeader conversation = spawnTestConversation();
 	User newcomer = controller.newUser("newcomer");
-	controller.addMember(creatorByte, newcomer.id, conversation);
-	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
+	controller.authorityModificationRequest(conversation.id, newcomer.id, conversation.owner, "m");
+	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
 	
-	assertTrue(
+	assertEquals(
 	    "Check that a creator can add a newcomer not in chat to their chat",
-	    accessMap.get(newcomer.id).byteValue()==memberByte);
+	    accessMap.get(newcomer.id).byteValue(), memberByte);
 	    
 	assertTrue(
 	    "Check that added newcomer #1 can join conversation",
-	    controller.checkMembership(newcomer.id, conversation));
+	    model.isMember(conversation, newcomer.id));
   }
   
   @Test
   public void ownerAddsNewcomerTest(){
 	ConversationHeader conversation = spawnTestConversation();
 	User newcomer = controller.newUser("newcomer");
-	controller.addMember(ownerByte, newcomer.id, conversation);
-	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
+	controller.authorityModificationRequest(conversation.id, newcomer.id, conversation.owner, "m");
+	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
 		
-	assertTrue(
+	assertEquals(
 		"Check that a creator can add a newcomer not in chat to their chat",
-		accessMap.get(newcomer.id).byteValue()==memberByte);
+		accessMap.get(newcomer.id).byteValue(), memberByte);
 		    
 	assertTrue(
 		"Check that added newcomer #2 can join conversation",
-		controller.checkMembership(newcomer.id, conversation));  
+		model.isMember(conversation, newcomer.id));  
   }
   
   // The following tests simulate a more realistic situation where different users have
   // different roles in the conversations they contribute to.
-  
-  @Test
-  public void byteReferenceCompatibilityTest() {
-	ConversationHeader conversation = spawnTestConversation();
-	User owner = controller.newUser("owner");
-	
-	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
-	controller.addOwner(accessMap.get(conversation.owner),owner,conversation);
-	accessMap = controller.getPermissionMap(conversation);
-
-	assertTrue(
-		"Check that .addOwner and similar methods work with indirect byte references",
-		accessMap.get(owner.id).byteValue()==ownerByte);
-  }
-  
+    
   @Test
   public void tandemRoleStorageTest() {
 	ConversationHeader chatA = spawnTestConversation();
@@ -416,32 +423,32 @@ public final class ConversationAccessServerTest {
 	User p3 = spawnOwner(chatA);
 		
 	ConversationHeader chatB = controller.newConversation("chatB", creator.id);
-	controller.ban(creatorByte, p3.id, chatB);
+	controller.authorityModificationRequest(chatB.id, p3.id, creator.id, "b");
 		
 	HashMap<Uuid, Byte> rightMap = new HashMap<Uuid, Byte>();
 	rightMap.put(chatA.id, creatorByte);
 	rightMap.put(p2.id, memberByte);
 	rightMap.put(p3.id, ownerByte);
 		
-	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(chatA);
+	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(chatA);
 		
-	assertTrue(accessMap.equals(rightMap));
+	assertEquals(accessMap, rightMap);
 		
 	rightMap.clear();
 	rightMap.put(p2.id, creatorByte);
 	rightMap.put(p3.id, trollByte);
 		
-	accessMap = controller.getPermissionMap(chatB);
+	accessMap = model.getPermissionMap(chatB);
 		
-	assertTrue(accessMap.equals(rightMap)); 
+	assertEquals(accessMap, rightMap); 
   }
   
   @Test
   public void earlyBanReadWriteTest() {
 	ConversationHeader conversation = spawnTestConversation();
 	User troll = spawnMember(conversation);
-	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
-	controller.ban(accessMap.get(conversation.owner),troll.id, conversation);
+	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
+	controller.authorityModificationRequest(conversation.id, troll.id, conversation.owner, "b");
 	
 	final Message messageFailed = controller.newMessage(troll.id, conversation.id,
 	    "BANNED USER ERROR: P1's message shouldn't be seen in chatC");
@@ -462,8 +469,8 @@ public final class ConversationAccessServerTest {
 	final Message message1 = controller.newMessage(conversation.owner, conversation.id,
 		"beep boop I love soup");
 		
-	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
-	controller.ban(accessMap.get(conversation.owner),troll.id, conversation);
+	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
+	controller.authorityModificationRequest(conversation.id, troll.id, conversation.owner, "b");
 		
 	final Message messageFailed = controller.newMessage(troll.id, conversation.id,
 		"BANNED USER ERROR: P1's message shouldn't be seen in chatC");
@@ -471,9 +478,9 @@ public final class ConversationAccessServerTest {
 	final Message message2 = controller.newMessage(conversation.owner, conversation.id,
 		"anyway, that's all, signing off now");
 	
-	assertTrue(
+	assertEquals(
 		"Check that conversation contains no troll messages",
-		view.findMessage(message1.next).equals(message2));  
+		view.findMessage(message1.next), message2);  
   }
   
   @Test
@@ -484,8 +491,8 @@ public final class ConversationAccessServerTest {
 	final Message message1 = controller.newMessage(conversation.owner, conversation.id,
 		"beep boop I love soup");
 	
-	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
-	controller.ban(accessMap.get(conversation.owner),troll.id, conversation);
+	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
+	controller.authorityModificationRequest(conversation.id, troll.id, conversation.owner, "b");
 	
 	final Message messageFailed = controller.newMessage(troll.id, conversation.id,
 		"BANNED USER ERROR: P1's message shouldn't be seen in chatC");
@@ -500,9 +507,9 @@ public final class ConversationAccessServerTest {
 	return controller.newConversation("conversation", creator.id);
   }
   
-  private User spawnOwner(ConversationHeader conversation){
-	User owner = controller.newUser("owner");
-	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
+  private User spawnOwner(ConversationHeader conversation, String str){
+	User owner = controller.newUser(str);
+	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
 	accessMap.put(owner.id, ownerByte);
 	controller.updatePermissionMap(conversation, accessMap);
 	return owner;
@@ -510,7 +517,7 @@ public final class ConversationAccessServerTest {
   
   private User spawnMember(ConversationHeader conversation){
 	User member = controller.newUser("member");
-	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
+	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
 	accessMap.put(member.id, memberByte);
 	controller.updatePermissionMap(conversation, accessMap);
 	return member;
@@ -518,14 +525,14 @@ public final class ConversationAccessServerTest {
   
   private User spawnTroll(ConversationHeader conversation){
 	User troll = controller.newUser("troll");
-	HashMap<Uuid, Byte> accessMap = controller.getPermissionMap(conversation);
+	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
 	accessMap.put(troll.id, trollByte);
 	controller.updatePermissionMap(conversation, accessMap);
 	return troll;
   }
   
   private Uuid[] spawnRest(ConversationHeader conversation){
-	User owner = spawnOwner(conversation);
+	User owner = spawnOwner(conversation, "owner");
 	User member = spawnMember(conversation);
 	User troll = spawnTroll(conversation);
 	Uuid[] result = {owner.id, member.id, troll.id};

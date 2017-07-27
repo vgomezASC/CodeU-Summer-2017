@@ -29,7 +29,7 @@ import codeu.chat.util.Uuid;
 import codeu.chat.util.store.Store;
 import codeu.chat.util.store.StoreAccessor;
 
-public final class Model {
+public final class Model implements AuthorityModel {
 
   private static final Comparator<Uuid> UUID_COMPARE = new Comparator<Uuid>() {
 
@@ -139,6 +139,63 @@ public final class Model {
 
   public StoreAccessor<String, Message> messageByText() {
     return messageByText;
+  }
+  
+  @Override
+  public void changeAuthority(Uuid conversation, Uuid targetUser, byte authorityByte){
+    System.out.println("Changing authority...but how?");
+  }
+  
+  @Override
+  public boolean isMember(ConversationHeader conversation,Uuid targetUser){
+    HashMap<Uuid, Byte> accessMap = this.getPermissionMap(conversation);
+    byte user = accessMap.get(targetUser);
+    byte expected = 0b000;
+    return !(user == expected);
+  }
+   
+  @Override
+  public boolean isMember(Uuid conversation,Uuid targetUser){
+	StoreAccessor<Uuid, ConversationHeader> convos = this.conversationById();
+	ConversationHeader chat = convos.first(conversation);
+	HashMap<Uuid, Byte> accessMap = this.getPermissionMap(chat);
+    byte user = accessMap.get(targetUser);
+    byte expected = 0b000;
+    if ((user & expected) == expected)
+    	return true;
+    return false;
+  }
+   
+  @Override
+  public boolean isOwner(ConversationHeader conversation,Uuid targetUser){
+	HashMap<Uuid, Byte> accessMap = this.getPermissionMap(conversation);
+	byte user = accessMap.get(targetUser);
+	return false;
+  }
+  
+  @Override
+  public boolean isOwner(Uuid conversation,Uuid targetUser){
+	StoreAccessor<Uuid, ConversationHeader> convos = this.conversationById();
+	ConversationHeader chat = convos.first(conversation);
+	HashMap<Uuid, Byte> accessMap = this.getPermissionMap(chat);
+	byte user = accessMap.get(targetUser);
+	return false;
+  }
+   
+  @Override
+  public boolean isCreator(ConversationHeader conversation,Uuid targetUser){
+	HashMap<Uuid, Byte> accessMap = this.getPermissionMap(conversation);
+	byte user = accessMap.get(targetUser);
+	return false;
+  }
+  
+  @Override
+  public boolean isCreator(Uuid conversation,Uuid targetUser){
+	StoreAccessor<Uuid, ConversationHeader> convos = this.conversationById();
+	ConversationHeader chat = convos.first(conversation);
+	HashMap<Uuid, Byte> accessMap = this.getPermissionMap(chat);
+	byte user = accessMap.get(targetUser);
+	return false;
   }
   
   public InterestSet getInterestSet(Uuid id){
