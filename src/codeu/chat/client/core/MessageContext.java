@@ -18,9 +18,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import codeu.chat.common.BasicView;
+import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.Message;
-import codeu.chat.util.Serializer;
-import codeu.chat.util.Serializers;
+import codeu.chat.common.User;
 import codeu.chat.util.Uuid;
 
 public final class MessageContext {
@@ -42,7 +42,7 @@ public final class MessageContext {
   }
 
   private MessageContext getMessage(Uuid id) {
-    final Iterator<Message> messages = view.getMessages(Arrays.asList(id)).iterator();
+    final Iterator<Message> messages = view.getMessages(message.conversation, message.author, Arrays.asList(id)).iterator();
     return messages.hasNext() ? new MessageContext(messages.next(), view) : null;
   }
 }

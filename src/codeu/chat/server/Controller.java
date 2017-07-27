@@ -33,7 +33,11 @@ import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 
 public final class Controller implements RawController, BasicController {
-
+  public static final byte USER_TYPE_CREATOR = 0b111;
+  public static final byte USER_TYPE_OWNER = 0b011;
+  public static final byte USER_TYPE_MEMBER = 0b001;
+  public static final byte USER_TYPE_BANNED = 0b000;
+	 
   private final static Logger.Log LOG = Logger.newLog(Controller.class);
 
   private final Model model;
@@ -83,6 +87,19 @@ public final class Controller implements RawController, BasicController {
     return newUser(createId(), name, Time.now());
   }
 
+  @Override
+  public void authorityModificationRequest(Uuid conversation, Uuid targetUser, Uuid fromUser, String parameterString){
+    byte authorityByte = 0b000;
+    if(parameterString.equals("o")){
+      authorityByte = USER_TYPE_OWNER;
+    } else if(parameterString.equals("m")){
+      authorityByte = USER_TYPE_MEMBER;
+    } else if(parameterString.equals("b")){
+      authorityByte = USER_TYPE_BANNED;
+    }
+    model.changeAuthority(conversation, targetUser, authorityByte);
+  }
+  
   @Override
   public ConversationHeader newConversation(String title, Uuid owner) {
     return newConversation(createId(), title, owner, Time.now());
@@ -173,6 +190,7 @@ public final class Controller implements RawController, BasicController {
       conversation = new ConversationHeader(id, owner, creationTime, title);
       model.add(conversation);
       localFile.addConversationHeader(conversation);
+      model.changeAuthority(conversation.id, owner, USER_TYPE_CREATOR);
       LOG.info("Conversation added: " + id);
     }
 

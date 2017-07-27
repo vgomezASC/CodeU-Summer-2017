@@ -18,16 +18,12 @@
  *  corresponding methods as we implement them, so let me know when you push a new commit
  *  that changes the names of what I have listed here. ~ Sarah Abowitz
  *
- *  Replaceable parts:
- *  - codeu.chat.server.Controller.updatePermissionMap(Uuid id, HashMap<Uuid, byte> accessMap)
- *  (changeAuthority's closest cousin. However, don't sub in that method!!)
- *         
+ *  Replaceable parts: None, they should all be replaced by now...
+ *          
  */
 
 
 package codeu.chat.server;
-
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import static org.junit.Assert.*;
@@ -35,7 +31,7 @@ import org.junit.Test;
 import org.junit.Before;
 
 import codeu.chat.common.BasicController;
-import codeu.chat.common.BasicView;
+import codeu.chat.common.SinglesView;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.Message;
 import codeu.chat.common.User;
@@ -45,7 +41,7 @@ public final class ConversationAccessServerTest {
 
   private Model model;
   private BasicController controller;
-  private BasicView view;
+  private SinglesView rawView;
   private byte creatorByte = 0b111; // Before testing, this must be the equivalent of 111.
   private byte ownerByte = 0b011; // Before testing, this must be the equivalent of 011.
   private byte memberByte = 0b001; // Before testing, this must be the equivalent of 001.
@@ -55,7 +51,7 @@ public final class ConversationAccessServerTest {
   public void doBefore() {
     model = new Model();
     controller = new Controller(Uuid.NULL, model);
-    view = new View(model);			
+    rawView = new View(model);			
   }
 
   @Test
@@ -99,8 +95,7 @@ public final class ConversationAccessServerTest {
     
     byte memberByte = 0b001; // Before testing, this must be the equivalent of 001.
     
-    accessMap.put(user.id, memberByte);
-    controller.updatePermissionMap(conversation, accessMap);
+    model.changeAuthority(conversation.id, user.id, memberByte);
     rightMap.put(user.id, memberByte);
     
     assertEquals(
@@ -227,6 +222,8 @@ public final class ConversationAccessServerTest {
 	Uuid[] users = spawnRest(conversation);
 	User newcomer = controller.newUser("newcomer");
     
+	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
+	
 	controller.authorityModificationRequest(conversation.id, newcomer.id, users[2], "b");
 	controller.authorityModificationRequest(conversation.id, conversation.owner, conversation.owner, "b");    
 	controller.authorityModificationRequest(conversation.id, conversation.owner, users[0], "b");
@@ -420,10 +417,10 @@ public final class ConversationAccessServerTest {
   public void tandemRoleStorageTest() {
 	ConversationHeader chatA = spawnTestConversation();
 	User p2 = spawnMember(chatA);
-	User p3 = spawnOwner(chatA);
+	User p3 = spawnOwner(chatA, "p3");
 		
-	ConversationHeader chatB = controller.newConversation("chatB", creator.id);
-	controller.authorityModificationRequest(chatB.id, p3.id, creator.id, "b");
+	ConversationHeader chatB = controller.newConversation("chatB", p2.id);
+	controller.authorityModificationRequest(chatB.id, p3.id, p2.id, "b");
 		
 	HashMap<Uuid, Byte> rightMap = new HashMap<Uuid, Byte>();
 	rightMap.put(chatA.id, creatorByte);
@@ -458,7 +455,7 @@ public final class ConversationAccessServerTest {
 	    
 	assertFalse(
 	    "Check that conversation so far started with a member",
-	    view.findMessage(message1.previous).equals(messageFailed));
+	    rawView.findMessage(message1.previous).equals(messageFailed));
   }
   
   @Test
@@ -480,7 +477,7 @@ public final class ConversationAccessServerTest {
 	
 	assertEquals(
 		"Check that conversation contains no troll messages",
-		view.findMessage(message1.next), message2);  
+		rawView.findMessage(message1.next), message2);  
   }
   
   @Test
@@ -499,7 +496,7 @@ public final class ConversationAccessServerTest {
 	
 	assertNull(
 		"Check that conversation ended with a member",
-		view.findMessage(message1.next));
+		rawView.findMessage(message1.next));
   }
   
   private ConversationHeader spawnTestConversation(){
@@ -509,25 +506,19 @@ public final class ConversationAccessServerTest {
   
   private User spawnOwner(ConversationHeader conversation, String str){
 	User owner = controller.newUser(str);
-	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
-	accessMap.put(owner.id, ownerByte);
-	controller.updatePermissionMap(conversation, accessMap);
+	model.changeAuthority(conversation.id, owner.id, ownerByte);
 	return owner;
   }
   
   private User spawnMember(ConversationHeader conversation){
 	User member = controller.newUser("member");
-	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
-	accessMap.put(member.id, memberByte);
-	controller.updatePermissionMap(conversation, accessMap);
+	model.changeAuthority(conversation.id, member.id, memberByte);
 	return member;
   }
   
   private User spawnTroll(ConversationHeader conversation){
 	User troll = controller.newUser("troll");
-	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
-	accessMap.put(troll.id, trollByte);
-	controller.updatePermissionMap(conversation, accessMap);
+	model.changeAuthority(conversation.id, troll.id, trollByte);
 	return troll;
   }
   
