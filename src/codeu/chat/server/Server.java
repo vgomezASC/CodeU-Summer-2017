@@ -204,10 +204,10 @@ public final class Server {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
 
-        final ConversationHeader conversation = ConversationHeader.SERIALIZER.read(in);
-        final User user = User.SERIALIZER.read(in);
+        final Uuid conversation = Uuid.SERIALIZER.read(in);
+        final Uuid user = Uuid.SERIALIZER.read(in);
         final Collection<Uuid> ids = Serializers.collection(Uuid.SERIALIZER).read(in);
-        if(!model.isMember(conversation, user.id))
+        if(!model.isMember(conversation, user))
         {
           Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
         }

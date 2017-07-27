@@ -34,13 +34,10 @@ import codeu.chat.common.Bookmark;
 import codeu.chat.common.InterestSet;
 import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
-import codeu.chat.server.Controller;
 import codeu.chat.util.Sort;
 import codeu.chat.util.Time;
 import codeu.chat.util.Tokenizer;
 import codeu.chat.util.Uuid;
-
-import codeu.chat.common.ServerInfo;
 
 import codeu.chat.common.ServerInfo;
 
@@ -445,7 +442,7 @@ public final class Chat {
           {
             System.out.println("ERROR: No such user.");
           }
-          else if(!para.equals("o") && !para.equals("u") && !para.equals("b"))
+          else if(!para.equals("o") && !para.equals("m") && !para.equals("b"))
           {
             System.out.println("ERROR: Parameter '" + para + "' is unacceptable! Please use 'help' for more information.");
           }

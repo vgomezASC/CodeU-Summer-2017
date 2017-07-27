@@ -36,7 +36,7 @@ public final class Controller implements RawController, BasicController {
   //Please modify the value here !!!
   public static final byte USER_TYPE_CREATOR = 0x07;
   public static final byte USER_TYPE_OWNER = 0x03;
-  public static final byte USER_TYPE_USER = 0x01;
+  public static final byte USER_TYPE_MEMBER = 0x01;
   public static final byte USER_TYPE_BANNED = 0x00;
 
   private final static Logger.Log LOG = Logger.newLog(Controller.class);
@@ -174,9 +174,9 @@ public final class Controller implements RawController, BasicController {
     {
       authorityByte = USER_TYPE_OWNER;
     }
-    else if(parameterString.equals("u"))
+    else if(parameterString.equals("m"))
     {
-      authorityByte = USER_TYPE_USER;
+      authorityByte = USER_TYPE_MEMBER;
     }
     else if(parameterString.equals("b"))
     {

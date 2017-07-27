@@ -120,15 +120,15 @@ final class View implements BasicView {
   }
 
   @Override
-  public Collection<Message> getMessages(ConversationHeader conversation, User user, Collection<Uuid> ids) {
+  public Collection<Message> getMessages(Uuid conversation, Uuid user, Collection<Uuid> ids) {
 
     final Collection<Message> messages = new ArrayList<>();
 
     try (final Connection connection = source.connect()) {
 
       Serializers.INTEGER.write(connection.out(), NetworkCode.GET_MESSAGES_BY_ID_REQUEST);
-      ConversationHeader.SERIALIZER.write(connection.out(), conversation);
-      User.SERIALIZER.write(connection.out(), user);
+      Uuid.SERIALIZER.write(connection.out(), conversation);
+      Uuid.SERIALIZER.write(connection.out(), user);
       Serializers.collection(Uuid.SERIALIZER).write(connection.out(), ids);
 
       final int access = Serializers.INTEGER.read(connection.in());

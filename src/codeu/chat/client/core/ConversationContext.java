@@ -56,7 +56,7 @@ public final class ConversationContext {
 	
     return message == null ?
         null :
-        new MessageContext(message, conversation, user, view);
+        new MessageContext(message, view);
   }
 
   public MessageContext firstMessage() {
@@ -88,8 +88,8 @@ public final class ConversationContext {
   }
 
   private MessageContext getMessage(Uuid id) {
-    final Iterator<Message> messages = view.getMessages(conversation, user, Arrays.asList(id)).iterator();
-    return messages.hasNext() ? new MessageContext(messages.next(), conversation, user, view) : null;
+    final Iterator<Message> messages = view.getMessages(conversation.id, user.id, Arrays.asList(id)).iterator();
+    return messages.hasNext() ? new MessageContext(messages.next(), view) : null;
   }
   
   public MessageContext findMessageByUuid(Uuid id) {

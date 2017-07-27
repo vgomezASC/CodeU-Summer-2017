@@ -26,14 +26,10 @@ import codeu.chat.util.Uuid;
 public final class MessageContext {
   
   public final Message message;
-  private final ConversationHeader conversation;
-  private final User user;
   private final BasicView view;
 
-  public MessageContext(Message message, ConversationHeader conversation, User user, BasicView view) {
+  public MessageContext(Message message, BasicView view) {
     this.message = message;
-    this.conversation = conversation;
-    this.user = user;
     this.view = view;
   }
 
@@ -46,7 +42,7 @@ public final class MessageContext {
   }
 
   private MessageContext getMessage(Uuid id) {
-    final Iterator<Message> messages = view.getMessages(conversation, user, Arrays.asList(id)).iterator();
-    return messages.hasNext() ? new MessageContext(messages.next(), conversation, user, view) : null;
+    final Iterator<Message> messages = view.getMessages(message.conversation, message.author, Arrays.asList(id)).iterator();
+    return messages.hasNext() ? new MessageContext(messages.next(), view) : null;
   }
 }
