@@ -96,11 +96,12 @@ public final class ConversationAccessServerTest {
     byte memberByte = 0b001; // Before testing, this must be the equivalent of 001.
     
     model.changeAuthority(conversation.id, user.id, memberByte);
+    rightMap.put(conversation.owner, creatorByte);
     rightMap.put(user.id, memberByte);
     
     assertEquals(
         "Check that the accessMap is correctly stored",
-        accessMap,rightMap);
+        rightMap, model.getPermissionMap(conversation));
   }
   
   @Test
@@ -423,7 +424,7 @@ public final class ConversationAccessServerTest {
 	controller.authorityModificationRequest(chatB.id, p3.id, p2.id, "b");
 		
 	HashMap<Uuid, Byte> rightMap = new HashMap<Uuid, Byte>();
-	rightMap.put(chatA.id, creatorByte);
+	rightMap.put(chatA.owner, creatorByte);
 	rightMap.put(p2.id, memberByte);
 	rightMap.put(p3.id, ownerByte);
 		
@@ -453,9 +454,9 @@ public final class ConversationAccessServerTest {
 	final Message message1 = controller.newMessage(conversation.owner, conversation.id,
 	    "beep boop I love soup");
 	    
-	assertFalse(
+	assertNull(
 	    "Check that conversation so far started with a member",
-	    rawView.findMessage(message1.previous).equals(messageFailed));
+	    rawView.findMessage(message1.previous));
   }
   
   @Test
