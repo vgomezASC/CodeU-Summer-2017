@@ -132,16 +132,11 @@ final class View implements BasicView {
       Serializers.collection(Uuid.SERIALIZER).write(connection.out(), ids);
 
       final int access = Serializers.INTEGER.read(connection.in());
-      if (access == NetworkCode.GET_MESSAGES_BY_ID_RESPONSE)
-      {
+      if (access == NetworkCode.GET_MESSAGES_BY_ID_RESPONSE){
         messages.addAll(Serializers.collection(Message.SERIALIZER).read(connection.in()));
-      }
-      else if(access == NetworkCode.CONVERSATION_ACCESS_DENIED)
-      {
-        System.out.println("WARNING: Access denied.");
-      } 
-      else 
-      {
+      } else if(access == NetworkCode.CONVERSATION_ACCESS_DENIED){
+    	System.out.println("WARNING: Access denied.");
+      } else {
         LOG.error("Response from server failed.");
       }
     } catch (Exception ex) {

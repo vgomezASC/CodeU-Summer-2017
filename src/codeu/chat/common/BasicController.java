@@ -58,8 +58,9 @@ public interface BasicController {
   // operation is successful, the InterestSet will be accessed.
   InterestSet getInterestSet(Uuid id);
   
-  // ??
-  void updateInterests(Uuid id, InterestSet intSet); 
-
+  // Shuttles in an Interest Set updated from the client-end.
+  void updateInterests(Uuid id, InterestSet intSet);
+  
+  // Yuhang, I'll let you describe this one.
   void authorityModificationRequest(Uuid conversation, Uuid targetUser, Uuid fromUser ,String parameterString);
 }

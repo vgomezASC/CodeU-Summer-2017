@@ -90,7 +90,25 @@ public final class Server {
         final Uuid targetUser = Uuid.SERIALIZER.read(in);
         final Uuid fromUser = Uuid.SERIALIZER.read(in);
         final String parameterString = Serializers.STRING.read(in);
-        if(!model.isMember(conversation, fromUser))
+        System.out.println(model.isCreator(conversation, fromUser));
+        System.out.println(model.isOwner(conversation, fromUser));
+        if(fromUser.equals(targetUser))
+        {
+          Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
+        }
+        else if(!model.isMember(conversation, fromUser))
+        {
+           Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
+        }
+        else if(!model.isOwner(conversation, fromUser) && !model.isCreator(conversation, fromUser))
+        {
+          Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
+        }
+        else if(model.isOwner(conversation, fromUser) && parameterString.equals("o"))
+        {
+          Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
+        }
+        else if(model.isOwner(conversation, fromUser) && model.isOwner(conversation, targetUser))
         {
           Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
         }
@@ -100,6 +118,7 @@ public final class Server {
         }
         else
         {
+          // assert(model.isCreator(conversation, fromUser) || model.isOwner(conversation, fromUser));
           controller.authorityModificationRequest(conversation, targetUser, fromUser, parameterString);
           Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_AUTHORITY_RESPONSE);
         }
@@ -114,20 +133,16 @@ public final class Server {
         final Uuid conversation = Uuid.SERIALIZER.read(in);
         final String content = Serializers.STRING.read(in);
 
-        if(!model.isMember(conversation, author))
-        {
+        if(!model.isMember(conversation, author)){
           Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
-        }
-        else
-        {
+        } else {
           final Message message = controller.newMessage(author, conversation, content);
           Serializers.INTEGER.write(out, NetworkCode.NEW_MESSAGE_RESPONSE);
           Serializers.nullable(Message.SERIALIZER).write(out, message);
-
           timeline.scheduleNow(createSendToRelayEvent(
-              author,
-              conversation,
-              message.id));
+        	author,
+        	conversation,
+        	message.id));
         }
       }
     });
@@ -203,21 +218,16 @@ public final class Server {
     this.commands.put(NetworkCode.GET_MESSAGES_BY_ID_REQUEST, new Command() {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
-
-        final Uuid conversation = Uuid.SERIALIZER.read(in);
-        final Uuid user = Uuid.SERIALIZER.read(in);
+    	final Uuid conversation = Uuid.SERIALIZER.read(in);
+    	final Uuid user = Uuid.SERIALIZER.read(in);
         final Collection<Uuid> ids = Serializers.collection(Uuid.SERIALIZER).read(in);
-        if(!model.isMember(conversation, user))
-        {
+        if(!model.isMember(conversation, user)){
           Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
-        }
-        else
-        {
+        } else {
           final Collection<Message> messages = view.getMessages(conversation, user, ids);
-
           Serializers.INTEGER.write(out, NetworkCode.GET_MESSAGES_BY_ID_RESPONSE);
           Serializers.collection(Message.SERIALIZER).write(out, messages);
-        }
+        }     
       }
     });
 

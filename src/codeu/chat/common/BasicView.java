@@ -51,7 +51,7 @@ public interface BasicView {
   // GET MESSAGES
   //
   //   Return all messages whose id is found in the given collection.
-  Collection<Message> getMessages(Uuid conversation,Uuid user, Collection<Uuid> ids);
+  Collection<Message> getMessages(Uuid conversation,Uuid user,Collection<Uuid> ids);    
 
   //GET INFO
   //
