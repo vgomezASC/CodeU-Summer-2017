@@ -15,8 +15,6 @@
 package codeu.chat.server;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 
 import codeu.chat.common.BasicController;
@@ -60,6 +58,7 @@ public final class Controller implements RawController, BasicController {
     LinkedHashSet<User> localUsers = localFile.getUsers();
     LinkedHashSet<ConversationHeader> localConversations = localFile.getConversationHeaders();
     LinkedHashSet<Message> localMessages = localFile.getMessages();
+    LinkedHashSet<AuthorityBuffer> localAuthority = localFile.getauthorityList();
     
     for(User item : localUsers)
     {
@@ -74,6 +73,10 @@ public final class Controller implements RawController, BasicController {
     for(Message item : localMessages)
     {
       newMessage(item.id, item.author, item.conversation, item.content, item.creation);
+    }
+    for(AuthorityBuffer item : localAuthority)
+    {
+      model.initializeAuthority(item.conversation, item.user, item.authorityByte);
     }
   }
 
