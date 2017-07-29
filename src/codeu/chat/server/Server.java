@@ -58,8 +58,8 @@ public final class Server {
   private final Secret secret;
   private static final ServerInfo info = new ServerInfo();
 
-  private final Model model;
-  private final View view;
+  private final Model model = new Model();
+  private final View view = new View(model);
   private final Controller controller;
 
   private final Relay relay;
@@ -74,8 +74,6 @@ public final class Server {
     this.secret = secret;
     this.file = localFilePath;
     this.localFile = new LocalFile(new File(file.getPath()));//file path is given by user
-    this.model = new Model(localFile);
-    this.view = new View(model);
     this.controller = new Controller(id, model,localFile);//Use the new constructor to create this new controller.
     this.relay = relay;
     this.commands.put(NetworkCode.CONVERSATION_AUTHORITY_REQUEST, new Command()
@@ -114,6 +112,7 @@ public final class Server {
         else
         {
           controller.authorityModificationRequest(conversation, targetUser, fromUser, parameterString);
+          
           Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_AUTHORITY_RESPONSE);
         }
       }

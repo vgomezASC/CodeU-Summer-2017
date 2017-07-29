@@ -15,7 +15,6 @@
 package codeu.chat.util;
 
 import java.io.IOException;
-import java.util.logging.Level;
 
 public final class Logger {
 

@@ -15,15 +15,11 @@
 package codeu.chat.client.commandline;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Scanner; 
 import java.util.Stack;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.io.IOException;
 
 
 import codeu.chat.client.core.Context;
@@ -38,8 +34,6 @@ import codeu.chat.util.Sort;
 import codeu.chat.util.Time;
 import codeu.chat.util.Tokenizer;
 import codeu.chat.util.Uuid;
-
-import codeu.chat.common.ServerInfo;
 
 public final class Chat {
 

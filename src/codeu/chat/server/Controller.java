@@ -82,6 +82,10 @@ public final class Controller implements RawController, BasicController {
 
   @Override
   public Message newMessage(Uuid author, Uuid conversation, String body) {
+    if(!model.isMember(conversation, author))
+    {
+      return null;
+    }
     return newMessage(createId(), author, conversation, body, Time.now());
   }
 
@@ -101,6 +105,7 @@ public final class Controller implements RawController, BasicController {
       authorityByte = USER_TYPE_BANNED;
     }
     model.changeAuthority(conversation, targetUser, authorityByte);
+    localFile.addAuthority(conversation, targetUser, authorityByte);
   }
   
   @Override
