@@ -18,6 +18,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 
 import codeu.chat.common.ConversationHeader;
+import codeu.chat.common.ConversationHeader.ConversationUuid;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.InterestSet;
 import codeu.chat.common.Message;
@@ -72,7 +73,7 @@ public final class Model implements AuthorityModel {
   private final Store<String, Message> messageByText = new Store<>(STRING_COMPARE);
 
   private HashMap<Uuid, InterestSet> interestMap = new HashMap<Uuid, InterestSet>();
-  HashMap<String, HashMap<Uuid, Byte>> authority = new HashMap<String, HashMap<Uuid, Byte>>();
+  HashMap<ConversationUuid, HashMap<Uuid, Byte>> authority = new HashMap<ConversationUuid, HashMap<Uuid, Byte>>();
   
   public void add(User user) {
     userById.insert(user.id, user);
@@ -103,7 +104,7 @@ public final class Model implements AuthorityModel {
     HashMap<Uuid, Byte> accessMap = new HashMap<Uuid, Byte>();
     byte creatorByte = 0b111;
     accessMap.put(conversation.owner, creatorByte);
-    authority.put(conversation.title,accessMap);
+    authority.put(conversation.id,accessMap);
   }
 
   public StoreAccessor<Uuid, ConversationHeader> conversationById() {
@@ -146,7 +147,7 @@ public final class Model implements AuthorityModel {
   ConversationHeader chat = convos.first(conversation);
   HashMap<Uuid, Byte> accessMap = this.getPermissionMap(chat);
   accessMap.put(targetUser, authorityByte);
-  authority.put(chat.title, accessMap);
+  authority.put(chat.id, accessMap);
   }
 
   public void initializeAuthority(Uuid conversation, Uuid targetUser, byte authorityByte)
@@ -155,7 +156,7 @@ public final class Model implements AuthorityModel {
     ConversationHeader chat = convos.first(conversation);
     HashMap<Uuid, Byte> accessMap = this.getPermissionMap(chat);
     accessMap.put(targetUser, authorityByte);
-    authority.put(chat.title, accessMap);
+    authority.put(chat.id, accessMap);
   }
   
   @Override
@@ -163,7 +164,7 @@ public final class Model implements AuthorityModel {
     HashMap<Uuid, Byte> accessMap = this.getPermissionMap(conversation);
     if(!accessMap.containsKey(targetUser)){
   	  accessMap.put(targetUser, Controller.USER_TYPE_MEMBER);
-  	  authority.put(conversation.title, accessMap);
+  	  authority.put(conversation.id, accessMap);
   	  return true;
   	} else {
   	  byte user = accessMap.get(targetUser);
@@ -180,7 +181,7 @@ public final class Model implements AuthorityModel {
 	HashMap<Uuid, Byte> accessMap = this.getPermissionMap(chat);
 	if(!accessMap.containsKey(targetUser)){
 	  accessMap.put(targetUser, Controller.USER_TYPE_MEMBER);
-	  authority.put(chat.title, accessMap);
+	  authority.put(chat.id, accessMap);
 	  return true;
 	} else {
 	  byte user = accessMap.get(targetUser);

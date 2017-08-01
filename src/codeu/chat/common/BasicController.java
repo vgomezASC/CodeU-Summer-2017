@@ -14,6 +14,7 @@
 
 package codeu.chat.common;
 
+import codeu.chat.common.ConversationHeader.ConversationUuid;
 import codeu.chat.util.Uuid;
 
 // BASIC CONTROLLER
@@ -62,5 +63,5 @@ public interface BasicController {
   void updateInterests(Uuid id, InterestSet intSet);
   
   // Yuhang, I'll let you describe this one.
-  void authorityModificationRequest(Uuid conversation, Uuid targetUser, Uuid fromUser ,String parameterString);
+  void authorityModificationRequest(ConversationUuid conversation, Uuid targetUser, Uuid fromUser ,String parameterString);
 }

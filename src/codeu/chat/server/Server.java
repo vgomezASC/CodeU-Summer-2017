@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import codeu.chat.common.ConversationHeader;
+import codeu.chat.common.ConversationHeader.ConversationUuid;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.InterestSet;
 import codeu.chat.common.Message;
@@ -81,7 +82,7 @@ public final class Server {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException
       {
-        final Uuid conversation = Uuid.SERIALIZER.read(in);
+        final ConversationUuid conversation = (ConversationUuid) Uuid.SERIALIZER.read(in);
         final Uuid targetUser = Uuid.SERIALIZER.read(in);
         final Uuid fromUser = Uuid.SERIALIZER.read(in);
         final String parameterString = Serializers.STRING.read(in);
@@ -363,7 +364,7 @@ public final class Server {
       // As the relay does not tell us who made the conversation - the first person who
       // has a message in the conversation will get ownership over this server's copy
       // of the conversation.
-      conversation = controller.newConversation(relayConversation.id(),
+      conversation = controller.newConversation((ConversationUuid) relayConversation.id(),
                                                 relayConversation.text(),
                                                 user.id,
                                                 relayConversation.time());

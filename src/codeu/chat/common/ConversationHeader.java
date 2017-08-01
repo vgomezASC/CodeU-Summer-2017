@@ -39,9 +39,8 @@ public final class ConversationHeader{
 
     @Override
     public ConversationHeader read(InputStream in) throws IOException {
-
       return new ConversationHeader(
-          Uuid.SERIALIZER.read(in),
+          (ConversationUuid) Uuid.SERIALIZER.read(in),
           Uuid.SERIALIZER.read(in),
           Time.SERIALIZER.read(in),
           Serializers.STRING.read(in)
@@ -50,17 +49,39 @@ public final class ConversationHeader{
     }
   };
 
-  public final Uuid id;
+  public final ConversationUuid id;
   public final Uuid owner;
   public final Time creation;
   public final String title;
 
-  public ConversationHeader(Uuid id, Uuid owner, Time creation, String title) {
-
+  public ConversationHeader(ConversationUuid id, Uuid owner, Time creation, String title) {
     this.id = id;
     this.owner = owner;
     this.creation = creation;
     this.title = title;
 
+  }
+  
+  public static class ConversationUuid extends Uuid{
+	public static final Serializer<ConversationUuid> SERIALIZER = new Serializer<ConversationUuid>() {
+		
+	  @Override
+   	  public void write(OutputStream out, ConversationUuid value) throws IOException {
+	    Uuid.SERIALIZER.write(out, value);
+	  }
+
+	  @Override
+	  public ConversationUuid read(InputStream in) throws IOException {
+	    return (ConversationUuid) Uuid.SERIALIZER.read(in);
+      }
+    };
+	  
+	public ConversationUuid(int id) {
+		super(id);
+	}
+	
+	public ConversationUuid(Uuid root){
+		super(root, root.id());
+	}
   }
 }

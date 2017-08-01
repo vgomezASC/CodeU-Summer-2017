@@ -19,6 +19,7 @@ import java.util.LinkedHashSet;
 
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
+import codeu.chat.common.ConversationHeader.ConversationUuid;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.InterestSet;
 import codeu.chat.common.Message;
@@ -95,7 +96,7 @@ public final class Controller implements RawController, BasicController {
   }
 
   @Override
-  public void authorityModificationRequest(Uuid conversation, Uuid targetUser, Uuid fromUser, String parameterString){
+  public void authorityModificationRequest(ConversationUuid conversation, Uuid targetUser, Uuid fromUser, String parameterString){
     byte authorityByte = 0b000;
     if(parameterString.equals("o")){
       authorityByte = USER_TYPE_OWNER;
@@ -110,7 +111,8 @@ public final class Controller implements RawController, BasicController {
   
   @Override
   public ConversationHeader newConversation(String title, Uuid owner) {
-    return newConversation(createId(), title, owner, Time.now());
+	ConversationUuid chatId = new ConversationUuid(createId());
+	return newConversation(chatId, title, owner, Time.now());
   }
 
   @Override
@@ -187,14 +189,14 @@ public final class Controller implements RawController, BasicController {
     return user;
   }
   @Override
-  public ConversationHeader newConversation(Uuid id, String title, Uuid owner, Time creationTime) {
+  public ConversationHeader newConversation(ConversationUuid id, String title, Uuid owner, Time creationTime) {
 
     final User foundOwner = model.userById().first(owner);
 
     ConversationHeader conversation = null;
-
     if (foundOwner != null && isIdFree(id)) {
-      conversation = new ConversationHeader(id, owner, creationTime, title);
+      conversation = new ConversationHeader(id, owner, creationTime, title); 
+      System.out.println(conversation.id.toString());
       model.add(conversation);
       localFile.addConversationHeader(conversation);
       model.changeAuthority(conversation.id, owner, USER_TYPE_CREATOR);
