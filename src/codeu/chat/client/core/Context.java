@@ -14,11 +14,9 @@
 
 package codeu.chat.client.core;
 
-import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import codeu.chat.common.BasicView;
 import codeu.chat.common.InterestSet;
 import codeu.chat.common.User;
 import codeu.chat.common.ServerInfo;

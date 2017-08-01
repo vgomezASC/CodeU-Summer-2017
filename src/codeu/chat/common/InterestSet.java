@@ -16,9 +16,7 @@
   import java.util.HashSet;
  
   import codeu.chat.client.core.ConversationContext;
-  import codeu.chat.client.core.MessageContext;
   import codeu.chat.common.User;
-  import codeu.chat.server.Model;
   import codeu.chat.util.Serializer;
   import codeu.chat.util.Serializers;
  

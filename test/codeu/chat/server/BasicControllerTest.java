@@ -30,7 +30,7 @@ public final class BasicControllerTest {
   private BasicController controller;
 
   @Before
-  public void doBefore() {
+  public void doBefore() { // fresh copy each time
     model = new Model();
     controller = new Controller(Uuid.NULL, model);
   }

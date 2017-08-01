@@ -19,6 +19,7 @@ import org.junit.Test;
 import org.junit.Before;
 
 import codeu.chat.common.ConversationHeader;
+import codeu.chat.common.ConversationHeader.ConversationUuid;
 import codeu.chat.common.Message;
 import codeu.chat.common.RawController;
 import codeu.chat.common.User;
@@ -31,7 +32,7 @@ public final class RawControllerTest {
   private RawController controller;
 
   private Uuid userId;
-  private Uuid conversationId;
+  private ConversationUuid conversationId;
   private Uuid messageId;
 
   @Before
@@ -40,7 +41,7 @@ public final class RawControllerTest {
     controller = new Controller(Uuid.NULL, model);
 
     userId = new Uuid(1);
-    conversationId = new Uuid(2);
+    conversationId = new ConversationUuid(2);
     messageId = new Uuid(3);
   }
 

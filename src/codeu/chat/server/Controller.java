@@ -15,12 +15,11 @@
 package codeu.chat.server;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
+import codeu.chat.common.ConversationHeader.ConversationUuid;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.InterestSet;
 import codeu.chat.common.Message;
@@ -33,7 +32,11 @@ import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 
 public final class Controller implements RawController, BasicController {
-
+  public static final byte USER_TYPE_CREATOR = 0b111;
+  public static final byte USER_TYPE_OWNER = 0b011;
+  public static final byte USER_TYPE_MEMBER = 0b001;
+  public static final byte USER_TYPE_BANNED = 0b000;
+	 
   private final static Logger.Log LOG = Logger.newLog(Controller.class);
 
   private final Model model;
@@ -56,6 +59,7 @@ public final class Controller implements RawController, BasicController {
     LinkedHashSet<User> localUsers = localFile.getUsers();
     LinkedHashSet<ConversationHeader> localConversations = localFile.getConversationHeaders();
     LinkedHashSet<Message> localMessages = localFile.getMessages();
+    LinkedHashSet<AuthorityBuffer> localAuthority = localFile.getauthorityList();
     
     for(User item : localUsers)
     {
@@ -71,10 +75,18 @@ public final class Controller implements RawController, BasicController {
     {
       newMessage(item.id, item.author, item.conversation, item.content, item.creation);
     }
+    for(AuthorityBuffer item : localAuthority)
+    {
+      model.initializeAuthority(item.conversation, item.user, item.authorityByte);
+    }
   }
 
   @Override
   public Message newMessage(Uuid author, Uuid conversation, String body) {
+    if(!model.isMember(conversation, author))
+    {
+      return null;
+    }
     return newMessage(createId(), author, conversation, body, Time.now());
   }
 
@@ -84,8 +96,23 @@ public final class Controller implements RawController, BasicController {
   }
 
   @Override
+  public void authorityModificationRequest(ConversationUuid conversation, Uuid targetUser, Uuid fromUser, String parameterString){
+    byte authorityByte = 0b000;
+    if(parameterString.equals("o")){
+      authorityByte = USER_TYPE_OWNER;
+    } else if(parameterString.equals("m")){
+      authorityByte = USER_TYPE_MEMBER;
+    } else if(parameterString.equals("b")){
+      authorityByte = USER_TYPE_BANNED;
+    }
+    model.changeAuthority(conversation, targetUser, authorityByte);
+    localFile.addAuthority(conversation, targetUser, authorityByte);
+  }
+  
+  @Override
   public ConversationHeader newConversation(String title, Uuid owner) {
-    return newConversation(createId(), title, owner, Time.now());
+	ConversationUuid chatId = new ConversationUuid(createId());
+	return newConversation(chatId, title, owner, Time.now());
   }
 
   @Override
@@ -161,18 +188,18 @@ public final class Controller implements RawController, BasicController {
 
     return user;
   }
-
   @Override
-  public ConversationHeader newConversation(Uuid id, String title, Uuid owner, Time creationTime) {
+  public ConversationHeader newConversation(ConversationUuid id, String title, Uuid owner, Time creationTime) {
 
     final User foundOwner = model.userById().first(owner);
 
     ConversationHeader conversation = null;
-
     if (foundOwner != null && isIdFree(id)) {
-      conversation = new ConversationHeader(id, owner, creationTime, title);
+      conversation = new ConversationHeader(id, owner, creationTime, title); 
+      System.out.println(conversation.id.toString());
       model.add(conversation);
       localFile.addConversationHeader(conversation);
+      model.changeAuthority(conversation.id, owner, USER_TYPE_CREATOR);
       LOG.info("Conversation added: " + id);
     }
 
