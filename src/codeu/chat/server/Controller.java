@@ -15,8 +15,6 @@
 package codeu.chat.server;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 
 import codeu.chat.common.BasicController;
@@ -60,26 +58,30 @@ public final class Controller implements RawController, BasicController {
     LinkedHashSet<User> localUsers = localFile.getUsers();
     LinkedHashSet<ConversationHeader> localConversations = localFile.getConversationHeaders();
     LinkedHashSet<Message> localMessages = localFile.getMessages();
+    LinkedHashSet<AuthorityBuffer> localAuthority = localFile.getAuthorityList();
     
-    for(User item : localUsers)
-    {
+    for(User item : localUsers){
       newUser(item.id, item.name, item.creation);
     }
 
-    for(ConversationHeader item : localConversations)
-    {
+    for(ConversationHeader item : localConversations){
       newConversation(item.id, item.title, item.owner, item.creation);
     }
 
-    for(Message item : localMessages)
-    {
+    for(Message item : localMessages){
       newMessage(item.id, item.author, item.conversation, item.content, item.creation);
+    }
+    
+    for(AuthorityBuffer item : localAuthority){
+      model.changeAuthority(item.conversation, item.user, item.authorityByte);
     }
   }
 
   @Override
   public Message newMessage(Uuid author, Uuid conversation, String body) {
-    return newMessage(createId(), author, conversation, body, Time.now());
+    if(!model.isMember(conversation, author))
+      return null;
+	return newMessage(createId(), author, conversation, body, Time.now());
   }
 
   @Override
@@ -98,6 +100,7 @@ public final class Controller implements RawController, BasicController {
       authorityByte = USER_TYPE_BANNED;
     }
     model.changeAuthority(conversation, targetUser, authorityByte);
+    localFile.addAuthority(conversation, targetUser, authorityByte);
   }
   
   @Override

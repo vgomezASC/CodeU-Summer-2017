@@ -1,7 +1,9 @@
 /* Original interface by Yuhang Liao, 
- * annotation and imports by Sarah Abowitz.
+ * annotation and imports by Sarah Abowitz. 
  * 
- * Hey idk if the new v of this is worth it
+ * Yuhang, you originally came up with the idea for this class so
+ * please replace this comment with what this interface does so devs
+ * know. ~ S
  */
 
 package codeu.chat.server;

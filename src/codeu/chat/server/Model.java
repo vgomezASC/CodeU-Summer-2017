@@ -20,7 +20,6 @@ import java.util.HashMap;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.InterestSet;
-import codeu.chat.common.LinearUuidGenerator;
 import codeu.chat.common.Message;
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;

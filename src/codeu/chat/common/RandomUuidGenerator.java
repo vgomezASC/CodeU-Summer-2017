@@ -16,8 +16,6 @@ package codeu.chat.common;
 
 import java.util.Random;
 
-import codeu.chat.util.Serializer;
-import codeu.chat.util.Serializers;
 import codeu.chat.util.Uuid;
 
 // Create a new random uuid. Uuids from this generator are random

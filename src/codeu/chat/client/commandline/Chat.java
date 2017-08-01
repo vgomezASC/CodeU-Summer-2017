@@ -15,16 +15,11 @@
 package codeu.chat.client.commandline;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Scanner; 
 import java.util.Stack;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.io.IOException;
-
 
 import codeu.chat.client.core.Context;
 import codeu.chat.client.core.ConversationContext;
@@ -38,8 +33,6 @@ import codeu.chat.util.Sort;
 import codeu.chat.util.Time;
 import codeu.chat.util.Tokenizer;
 import codeu.chat.util.Uuid;
-
-import codeu.chat.common.ServerInfo;
 
 public final class Chat {
 
@@ -490,7 +483,7 @@ public final class Chat {
     	  if(findUser(user) == null){
     		System.out.println("ERROR: No such user.");
     	  } else if(!para.equals("o") && !para.equals("m") && !para.equals("b")){
-    		System.out.println("ERROR: Parameter '" + para + "' is unacceptable! Please use 'help' for more information.");
+    		System.out.println("ERROR: Parameter '" + para + "' is unacceptable! Type 'help' for more info.");
     	  } else {
     		conversation.changeAuthority(findUser(user).id, para);
     	  }

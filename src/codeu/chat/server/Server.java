@@ -19,9 +19,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +26,6 @@ import java.util.Map;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.InterestSet;
-import codeu.chat.common.LinearUuidGenerator;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
@@ -37,7 +33,6 @@ import codeu.chat.common.Secret;
 import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
 import codeu.chat.server.LocalFile;
-import codeu.chat.common.ServerInfo;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
@@ -174,15 +169,20 @@ public final class Server {
 
     // Get Messages By Id - A client wants to get a subset of the messages from the back end.
     this.commands.put(NetworkCode.GET_MESSAGES_BY_ID_REQUEST, new Command() {
+      boolean firstCall = true;
+    	
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
     	final Uuid conversation = Uuid.SERIALIZER.read(in);
     	final Uuid user = Uuid.SERIALIZER.read(in);
         final Collection<Uuid> ids = Serializers.collection(Uuid.SERIALIZER).read(in);
-        if(!model.isMember(conversation, user)){
+        if(firstCall && !model.isMember(conversation, user)){
           Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
         } else {
+          firstCall = false;
           final Collection<Message> messages = view.getMessages(conversation, user, ids);
+          if(messages.size() == 0)
+            firstCall = true;
           Serializers.INTEGER.write(out, NetworkCode.GET_MESSAGES_BY_ID_RESPONSE);
           Serializers.collection(Message.SERIALIZER).write(out, messages);
         }     
@@ -232,16 +232,19 @@ public final class Server {
     	final Uuid targetUser = Uuid.SERIALIZER.read(in);
     	final Uuid fromUser = Uuid.SERIALIZER.read(in);
     	final String parameterString = Serializers.STRING.read(in);
-    	if(!model.isMember(conversation, fromUser))
-    	{
+    	if(fromUser.equals(targetUser)){
     	  Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
-    	}
-    	else if(model.isOwner(conversation, fromUser) && model.isCreator(conversation, targetUser))
-    	{
+    	} else if(!model.isMember(conversation, fromUser)){
     	  Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
-    	}
-    	else
-    	{
+    	} else if(!model.isOwner(conversation, fromUser) && !model.isCreator(conversation, targetUser)){
+    	  Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);	
+    	} else if(model.isOwner(conversation, fromUser) && parameterString.equals("o")){
+    	  Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);  	
+    	} else if(model.isOwner(conversation, fromUser) && model.isOwner(conversation, targetUser)){
+    		  Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);  			
+    	} else if(model.isOwner(conversation, fromUser) && model.isCreator(conversation, targetUser)){
+    		
+    	} else {
     	  controller.authorityModificationRequest(conversation, targetUser, fromUser, parameterString);
     	  Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_AUTHORITY_RESPONSE);
     	}
