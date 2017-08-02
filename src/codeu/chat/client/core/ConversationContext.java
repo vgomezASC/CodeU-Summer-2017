@@ -93,5 +93,4 @@ public final class ConversationContext {
   public void changeAuthority(Uuid targetUser, String authorityParameter){
     controller.authorityModificationRequest(conversation.id, targetUser, user.id, authorityParameter);
   }
-
 }

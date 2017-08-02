@@ -18,6 +18,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 
 import codeu.chat.common.ConversationHeader;
+import codeu.chat.common.ConversationHeader.ConversationUuid;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.InterestSet;
 import codeu.chat.common.Message;
@@ -72,7 +73,12 @@ public final class Model implements AuthorityModel {
   private final Store<String, Message> messageByText = new Store<>(STRING_COMPARE);
 
   private HashMap<Uuid, InterestSet> interestMap = new HashMap<Uuid, InterestSet>();
-  HashMap<String, HashMap<Uuid, Byte>> authority = new HashMap<String, HashMap<Uuid, Byte>>();
+  HashMap<ConversationUuid, HashMap<Uuid, Byte>> authority = new HashMap<ConversationUuid, HashMap<Uuid, Byte>>();
+  
+  public static final byte USER_TYPE_CREATOR = 0b111;
+  public static final byte USER_TYPE_OWNER = 0b011;
+  public static final byte USER_TYPE_MEMBER = 0b001;
+  public static final byte USER_TYPE_BANNED = 0b000;
   
   public void add(User user) {
     userById.insert(user.id, user);
@@ -95,15 +101,15 @@ public final class Model implements AuthorityModel {
   }
 
   public void add(ConversationHeader conversation) {
-    conversationById.insert(conversation.id, conversation);
+    conversationById.insert(conversation.id.root(), conversation);
     conversationByTime.insert(conversation.creation, conversation);
     conversationByText.insert(conversation.title, conversation);
-    conversationPayloadById.insert(conversation.id, new ConversationPayload(conversation.id));
+    conversationPayloadById.insert(conversation.id.root(), new ConversationPayload(conversation.id));
     
     HashMap<Uuid, Byte> accessMap = new HashMap<Uuid, Byte>();
     byte creatorByte = 0b111;
     accessMap.put(conversation.owner, creatorByte);
-    authority.put(conversation.title,accessMap);
+    authority.put(conversation.id, accessMap);
   }
 
   public StoreAccessor<Uuid, ConversationHeader> conversationById() {
@@ -141,41 +147,50 @@ public final class Model implements AuthorityModel {
   }
   
   @Override
-  public void changeAuthority(Uuid conversation, Uuid targetUser, byte authorityByte){
+  public void changeAuthority(ConversationUuid conversation, Uuid targetUser, byte authorityByte){
 	StoreAccessor<Uuid, ConversationHeader> convos = this.conversationById();
-	ConversationHeader chat = convos.first(conversation);
-	HashMap<Uuid, Byte> accessMap = this.getPermissionMap(chat);
-	accessMap.put(targetUser, authorityByte);
-	authority.put(chat.title, accessMap);
+    ConversationHeader chat = convos.first(conversation.root());
+    HashMap<Uuid, Byte> accessMap = this.getPermissionMap(chat);
+    accessMap.put(targetUser, authorityByte);
+    authority.put(chat.id, accessMap);
+  }
+
+  public void initializeAuthority(Uuid conversation, Uuid targetUser, byte authorityByte)
+  {
+    StoreAccessor<Uuid, ConversationHeader> convos = this.conversationById();
+    ConversationHeader chat = convos.first(conversation);
+    HashMap<Uuid, Byte> accessMap = this.getPermissionMap(chat);
+    accessMap.put(targetUser, authorityByte);
+    authority.put(chat.id, accessMap);
   }
   
   @Override
   public boolean isMember(ConversationHeader conversation,Uuid targetUser){
     HashMap<Uuid, Byte> accessMap = this.getPermissionMap(conversation);
     if(!accessMap.containsKey(targetUser)){
-  	  accessMap.put(targetUser, Controller.USER_TYPE_MEMBER);
-  	  authority.put(conversation.title, accessMap);
+  	  accessMap.put(targetUser, USER_TYPE_MEMBER);
+  	  authority.put(conversation.id, accessMap);
   	  return true;
   	} else {
   	  byte user = accessMap.get(targetUser);
-  	  if ((user | Controller.USER_TYPE_BANNED) == Controller.USER_TYPE_BANNED)
+  	  if ((user | USER_TYPE_BANNED) == USER_TYPE_BANNED)
   	  	return false;
   	  return true;
     }
   }
    
   @Override
-  public boolean isMember(Uuid conversation,Uuid targetUser){
+  public boolean isMember(ConversationUuid conversation,Uuid targetUser){
 	StoreAccessor<Uuid, ConversationHeader> convos = this.conversationById();
-	ConversationHeader chat = convos.first(conversation);
+	ConversationHeader chat = convos.first(conversation.root());
 	HashMap<Uuid, Byte> accessMap = this.getPermissionMap(chat);
 	if(!accessMap.containsKey(targetUser)){
-	  accessMap.put(targetUser, Controller.USER_TYPE_MEMBER);
-	  authority.put(chat.title, accessMap);
+	  accessMap.put(targetUser, USER_TYPE_MEMBER);
+	  authority.put(chat.id, accessMap);
 	  return true;
 	} else {
 	  byte user = accessMap.get(targetUser);
-	  if ((user | Controller.USER_TYPE_BANNED) == Controller.USER_TYPE_BANNED)
+	  if ((user | USER_TYPE_BANNED) == USER_TYPE_BANNED)
 	  	return false;
 	  return true;
     }
@@ -197,9 +212,9 @@ public final class Model implements AuthorityModel {
   }
   
   @Override
-  public boolean isOwner(Uuid conversation,Uuid targetUser){
+  public boolean isOwner(ConversationUuid conversation,Uuid targetUser){
 	StoreAccessor<Uuid, ConversationHeader> convos = this.conversationById();
-	ConversationHeader chat = convos.first(conversation);
+	ConversationHeader chat = convos.first(conversation.root());
 	HashMap<Uuid, Byte> accessMap = this.getPermissionMap(chat);
 	if (!accessMap.containsKey(targetUser)){
 	  this.isMember(conversation, targetUser);
@@ -221,23 +236,23 @@ public final class Model implements AuthorityModel {
 		  return false;
     } else {
 	  byte user = accessMap.get(targetUser);
-	  if((Controller.USER_TYPE_CREATOR & user) == Controller.USER_TYPE_CREATOR)
+	  if((USER_TYPE_CREATOR & user) == USER_TYPE_CREATOR)
 		return true;
       return false;
     }
   }
   
   @Override
-  public boolean isCreator(Uuid conversation,Uuid targetUser){
+  public boolean isCreator(ConversationUuid conversation,Uuid targetUser){
 	StoreAccessor<Uuid, ConversationHeader> convos = this.conversationById();
-	ConversationHeader chat = convos.first(conversation);
+	ConversationHeader chat = convos.first(conversation.root());
 	HashMap<Uuid, Byte> accessMap = this.getPermissionMap(chat);
 	if (!accessMap.containsKey(targetUser)){
 		  this.isMember(conversation, targetUser);
 		  return false;
     } else {
 	  byte user = accessMap.get(targetUser);
-	  if((Controller.USER_TYPE_CREATOR & user) == Controller.USER_TYPE_CREATOR)
+	  if((USER_TYPE_CREATOR & user) == USER_TYPE_CREATOR)
 		return true;
       return false;
     }
@@ -257,7 +272,7 @@ public final class Model implements AuthorityModel {
   }
   
   public HashMap<Uuid, Byte> getPermissionMap(ConversationHeader c){
-	  return authority.get(c.title);
+	  return authority.get(c.id);
   }
   
 }

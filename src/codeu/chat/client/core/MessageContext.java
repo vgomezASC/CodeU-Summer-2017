@@ -26,7 +26,7 @@ import codeu.chat.util.Uuid;
 public final class MessageContext {
   
   public final Message message;
-  public final BasicView view;
+  private final BasicView view;
 
   public MessageContext(Message message, BasicView view) {
     this.message = message;

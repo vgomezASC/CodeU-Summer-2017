@@ -14,6 +14,7 @@
 
 package codeu.chat.common;
 
+import codeu.chat.common.ConversationHeader.ConversationUuid;
 import codeu.chat.util.Uuid;
 
 // BASIC CONTROLLER
@@ -31,7 +32,7 @@ public interface BasicController {
   //   or else the server won't apply the change. If the operation is
   //   successful, a Message object will be returned representing the full
   //   state of the message on the server.
-  Message newMessage(Uuid author, Uuid conversation, String body);
+  Message newMessage(Uuid author, ConversationUuid conversation, String body);
 
   // NEW USER
   //
@@ -62,5 +63,5 @@ public interface BasicController {
   void updateInterests(Uuid id, InterestSet intSet);
   
   // Yuhang, I'll let you describe this one.
-  void authorityModificationRequest(Uuid conversation, Uuid targetUser, Uuid fromUser ,String parameterString);
+  void authorityModificationRequest(ConversationUuid conversation, Uuid targetUser, Uuid fromUser ,String parameterString);
 }

@@ -90,7 +90,6 @@ public final class ConversationAccessServerTest {
     final User user = controller.newUser("user");
      
     ConversationHeader conversation = controller.newConversation("chat", creator.id);
-    HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
     HashMap<Uuid, Byte> rightMap = new HashMap<Uuid, Byte>();
     
     byte memberByte = 0b001; // Before testing, this must be the equivalent of 001.
@@ -445,7 +444,6 @@ public final class ConversationAccessServerTest {
   public void earlyBanReadWriteTest() {
 	ConversationHeader conversation = spawnTestConversation();
 	User troll = spawnMember(conversation);
-	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
 	controller.authorityModificationRequest(conversation.id, troll.id, conversation.owner, "b");
 	
 	final Message messageFailed = controller.newMessage(troll.id, conversation.id,
@@ -467,7 +465,6 @@ public final class ConversationAccessServerTest {
 	final Message message1 = controller.newMessage(conversation.owner, conversation.id,
 		"beep boop I love soup");
 		
-	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
 	controller.authorityModificationRequest(conversation.id, troll.id, conversation.owner, "b");
 		
 	final Message messageFailed = controller.newMessage(troll.id, conversation.id,
@@ -489,7 +486,6 @@ public final class ConversationAccessServerTest {
 	final Message message1 = controller.newMessage(conversation.owner, conversation.id,
 		"beep boop I love soup");
 	
-	HashMap<Uuid, Byte> accessMap = model.getPermissionMap(conversation);
 	controller.authorityModificationRequest(conversation.id, troll.id, conversation.owner, "b");
 	
 	final Message messageFailed = controller.newMessage(troll.id, conversation.id,

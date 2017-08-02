@@ -16,6 +16,7 @@ package codeu.chat.client.core;
 
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
+import codeu.chat.common.ConversationHeader.ConversationUuid;
 import codeu.chat.common.InterestSet;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
@@ -37,8 +38,8 @@ final class Controller implements BasicController {
   }
 
   @Override
-  public Message newMessage(Uuid author, Uuid conversation, String body) {
-
+  public Message newMessage(Uuid author, ConversationUuid chatId, String body) {
+    Uuid conversation = chatId.root();
     Message response = null;
 
     try (final Connection connection = source.connect()) {
@@ -53,7 +54,9 @@ final class Controller implements BasicController {
         System.out.println("WARNING: Access Denied.");
       } else if (reply == NetworkCode.NEW_MESSAGE_RESPONSE){
         response = Serializers.nullable(Message.SERIALIZER).read(connection.in());
-      } else {
+      } 
+      else 
+      {
         LOG.error("Response from server failed.");
       }
     } catch (Exception ex) {
@@ -147,7 +150,7 @@ final class Controller implements BasicController {
   }
   
   @Override
-  public void authorityModificationRequest(Uuid conversation, Uuid targetUser, Uuid user, String parameterString){
+  public void authorityModificationRequest(ConversationUuid conversation, Uuid targetUser, Uuid user, String parameterString){
 	try(final Connection connection = this.source.connect()){
 	  Serializers.INTEGER.write(connection.out(), NetworkCode.CONVERSATION_AUTHORITY_REQUEST);
  	  Uuid.SERIALIZER.write(connection.out(), conversation);

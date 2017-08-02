@@ -1,24 +1,23 @@
 /* Original interface by Yuhang Liao, 
- * annotation and imports by Sarah Abowitz. 
+ * annotation and imports by Sarah Abowitz.
  * 
- * Yuhang, you originally came up with the idea for this class so
- * please replace this comment with what this interface does so devs
- * know. ~ S
+ * Hey idk if the new v of this is worth it
  */
 
 package codeu.chat.server;
 
 import codeu.chat.common.ConversationHeader;
+import codeu.chat.common.ConversationHeader.ConversationUuid;
 import codeu.chat.util.Uuid;
 
 public interface AuthorityModel
 {
-  public void changeAuthority(Uuid conversation, Uuid targetUser, byte authorityByte);
+  public void changeAuthority(ConversationUuid conversation, Uuid targetUser, byte authorityByte);
 
   public boolean isMember(ConversationHeader conversation,Uuid targetUser);
-  public boolean isMember(Uuid conversation,Uuid targetUser);
+  public boolean isMember(ConversationUuid conversation,Uuid targetUser);
   public boolean isOwner(ConversationHeader conversation,Uuid targetUser);
-  public boolean isOwner(Uuid conversation,Uuid targetUser);
+  public boolean isOwner(ConversationUuid conversation,Uuid targetUser);
   public boolean isCreator(ConversationHeader conversation,Uuid targetUser);
-  public boolean isCreator(Uuid conversation,Uuid targetUser);
+  public boolean isCreator(ConversationUuid conversation,Uuid targetUser);
 }

@@ -1,10 +1,3 @@
-/* Original class by Yuhang Liao, 
- * documentation addition by Sarah Abowitz.
- * 
- * Yuhang, if you're reading this, change this so it tells the dev
- * what this class says bc idk ~ S
- */
-
 package codeu.chat.server;
 
 import java.io.File;
@@ -14,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.FileInputStream;
 
 import java.util.Collection;
+
 import java.util.LinkedHashSet;
 
 import codeu.chat.common.ConversationHeader;
@@ -32,13 +26,13 @@ public class LocalFile
     public static final String USER_FILE_NAME = "/usrDat.sav";
     public static final String CONVERSATION_FILE_NAME = "/cvrsDat.sav";
     public static final String AUTHORITY_FILE_NAME = "/auth.sav";
-    
-    //Instance variables for saving the current data of server.
+
+    //Instance varibles for saving the current data of server.
     private final LinkedHashSet<User> users;
     private final LinkedHashSet<ConversationHeader> conversationHeaders;
     private final LinkedHashSet<Message> messages;
     private final LinkedHashSet<AuthorityBuffer> authorityList;
-    
+
     private final File file;
 
     private boolean hasUserModified = false;//It indicates if there is a new data should be handled.
@@ -50,13 +44,13 @@ public class LocalFile
     private final Serializer<Collection<ConversationHeader>> localConversationHeaders = Serializers.collection(ConversationHeader.SERIALIZER);
     private final Serializer<Collection<User>> localUsers = Serializers.collection(User.SERIALIZER);
     private final Serializer<Collection<AuthorityBuffer>> localAuthority = Serializers.collection(AuthorityBuffer.SERIALIZER);
-    
+
     private final File userFile;
     private final File conversationFile;
     private final File messageFile;
     private final File authorityFile;
-    
-    public LocalFile (File file){
+    public LocalFile (File file)
+    {
         this.file = file;
         users = new LinkedHashSet<>();
         conversationHeaders= new LinkedHashSet<>();
@@ -66,21 +60,28 @@ public class LocalFile
         userFile = new File(file.getPath() + USER_FILE_NAME);
         conversationFile = new File(file.getPath() + CONVERSATION_FILE_NAME);
         messageFile = new File(file.getPath() + MESSAGE_FILE_NAME);
-        authorityFile = new File(file.getPath() + AUTHORITY_FILE_NAME);
-        
-        try{
-            if(!userFile.exists()){
+        authorityFile = new File(file.getPath(), AUTHORITY_FILE_NAME);
+        try
+        {
+            if(!userFile.exists())
+            {
                 userFile.createNewFile();
             }      
-            
-            if(!conversationFile.exists()){
+            if(!conversationFile.exists())
+            {
                 conversationFile.createNewFile();
             }
-            
-            if(!messageFile.exists()){
+            if(!messageFile.exists())
+            {
                 messageFile.createNewFile();
             }
-        } catch(IOException exception) {
+            if(!authorityFile.exists())
+            {
+                authorityFile.createNewFile();
+            }
+        }
+        catch(IOException exception)
+        {
             LOG.error("Failed to create new file!");
             exception.printStackTrace();
             throw new RuntimeException();
@@ -89,39 +90,49 @@ public class LocalFile
         try(FileInputStream userInputStream = new FileInputStream(userFile);
             FileInputStream conversationInputStream = new FileInputStream(conversationFile);
             FileInputStream messageInputStream = new FileInputStream(messageFile);
-        	FileInputStream authInputStream = new FileInputStream(authorityFile);)
+            FileInputStream authInputStream = new FileInputStream(authorityFile);)
         {
-            if(userInputStream.available() > 0){
+            if(userInputStream.available() > 0)
+            {
                 Collection<User> userData = localUsers.read(userInputStream);
-                for (User item : userData){
+                for (User item : userData)
+                {
                     users.add(item);
                 }
             }
             
-            if(conversationInputStream.available() > 0){
+            if(conversationInputStream.available() > 0)
+            {
                 Collection<ConversationHeader> conversationData =  localConversationHeaders.read(conversationInputStream);
-                for (ConversationHeader item : conversationData){
+                for (ConversationHeader item : conversationData)
+                {
                     conversationHeaders.add(item);
                 }
             }
 
-            if(messageInputStream.available() > 0){
+            if(messageInputStream.available() > 0)
+            {
                 Collection<Message> messageData = localMessages.read(messageInputStream);
-                for(Message item : messageData){
+                for(Message item : messageData)
+                {
                     messages.add(item);
                 }
-            }
+            } 
             
-            if(authInputStream.available() > 0){
-              Collection<AuthorityBuffer> authData = localAuthority.read(authInputStream);
-              for(AuthorityBuffer item : authData){
-            	authorityList.add(item);  
-              }
+            if(authInputStream.available() > 0)
+            {
+                Collection<AuthorityBuffer> authData = localAuthority.read(authInputStream);
+                for(AuthorityBuffer item : authData)
+                {
+                    authorityList.add(item);
+                }
             }
-        } catch (IOException exception){
-          System.out.println("ERROR: Failed to read local data!");
-          exception.printStackTrace();
-          throw new RuntimeException("ERROR: Program will be terminated!"); 
+        }
+        catch (IOException exception)
+        {
+        System.out.println("ERROR: Failed to read local data!");
+        exception.printStackTrace();
+        throw new RuntimeException("ERROR: Program will be terminated!"); 
         }
     }
 
@@ -134,7 +145,6 @@ public class LocalFile
     {
         return new LinkedHashSet<User>(users);
     }
-    
     /**
      * Get conversations
      * 
@@ -144,20 +154,20 @@ public class LocalFile
     {
         return new LinkedHashSet<ConversationHeader>(conversationHeaders);
     }
-    
     /**
      * Get messages
      * 
      * @return  LinkedHashSet<Message> Current messages from this instance
      */
-    public LinkedHashSet<Message> getMessages(){
+    public LinkedHashSet<Message> getMessages()
+    {
         return new LinkedHashSet<Message>(messages);
     }
-    
-    public LinkedHashSet<AuthorityBuffer> getAuthorityList(){
-      return new LinkedHashSet<>(authorityList);
+
+    public LinkedHashSet<AuthorityBuffer> getauthorityList()
+    {
+        return new LinkedHashSet<>(authorityList);
     }
-    
     /**
      * Add a new user to the instance
      * 
@@ -172,7 +182,6 @@ public class LocalFile
         users.add(user);
         hasUserModified = true;
     }
-    
     /**
      * Add a new conversation to the instance.
      * 
@@ -187,7 +196,6 @@ public class LocalFile
         conversationHeaders.add(header);//If repetition happens, hasMofified should be false still.
         hasConversationModified = true;
     }
-    
     /**
      * Add a new message to the instance.
      * 
@@ -202,19 +210,20 @@ public class LocalFile
        messages.add(message);//If repetition happens, hasMofified should be false still.
        hasMessageModified = true;
     }
-    
-    public void addAuthority(Uuid c, Uuid u, byte b){
-      AuthorityBuffer buffer = new AuthorityBuffer(c, u, b);
-      authorityList.add(buffer);
-      hasAuthorityListModified = true;
+
+    public void addAuthority(Uuid conversation, Uuid user, byte authorityByte)
+    {
+        AuthorityBuffer buffer = new AuthorityBuffer(conversation, user, authorityByte);
+        authorityList.add(buffer);
+        hasAuthorityListModified = true;
     }
-    
     /**
      * Get current path.
      * 
      * @return String Path of this instance
      */
-    public String getPath(){
+    public String getPath()
+    {
         return file.getPath();
     }
 
@@ -222,100 +231,125 @@ public class LocalFile
    * Save user data
    * @throws IOException
    */
-  private void saveUsers() throws IOException{
-    try(FileOutputStream userStream = new FileOutputStream(userFile)){
+  private void saveUsers() throws IOException
+  {
+    try(FileOutputStream userStream = new FileOutputStream(userFile))
+    {
       localUsers.write(userStream, users);
-    } catch(FileNotFoundException exception){
-      System.out.println("ERROR: Unacceptable file path");
+    }
+    catch(FileNotFoundException exception)
+    {
+      System.out.println("ERROR:Unacceptable file path");
       exception.printStackTrace();
       throw exception;
-    } catch(IOException exception){
-      System.out.println("ERROR: Failed to get UserStream!");
+    }
+    catch(IOException exception)
+    {
+      System.out.println("ERROR:Failed to get UserStream!");
       exception.printStackTrace();
       throw exception;
     }
   }
-  
   /**
    * Save conversation data
    * @throws IOException
    */
-  private void saveConversationHeaders() throws IOException{
-    try(FileOutputStream conversationStream = new FileOutputStream(conversationFile)){
+  private void saveConversationHeaders() throws IOException
+  {
+    try(FileOutputStream conversationStream = new FileOutputStream(conversationFile))
+    {
       localConversationHeaders.write(conversationStream, conversationHeaders);
-    } catch (FileNotFoundException exception){
+    }
+    catch (FileNotFoundException exception)
+    {
       System.out.println("ERROR:Unacceptable file path");
       exception.printStackTrace();
       throw exception;
-    } catch(IOException exception){
+    }
+    catch(IOException exception)
+    {
       System.out.println("ERROR:Failed to get ConversationHeaderStream!");
       exception.printStackTrace();
       throw exception;
     }
   }
-  
   /**
    * Save message data
    * @throws IOException
    */
-  private void saveMessages() throws IOException{
-    try(FileOutputStream messageStream = new FileOutputStream(messageFile)){
+  private void saveMessages() throws IOException
+  {
+    try(FileOutputStream messageStream = new FileOutputStream(messageFile))
+    {
       localMessages.write(messageStream, messages);
-    } catch (FileNotFoundException exception){
+    }
+    catch (FileNotFoundException exception)
+    {
       System.out.println("ERROR:Unacceptable file path");
       exception.printStackTrace();
       throw exception;
-    } catch (IOException exception){
+    }
+    catch (IOException exception)
+    {
       System.out.println("ERROR:Failed to get MessageStream!");
       exception.printStackTrace();
       throw exception;
     }
   }
-  
-  private void saveAuthorityList() throws IOException{
-    try(FileOutputStream authorityStream = new FileOutputStream(authorityFile)){
+ private void saveAuthorityList() throws IOException
+  {
+    try(FileOutputStream authorityStream = new FileOutputStream(authorityFile))
+    {
       localAuthority.write(authorityStream, authorityList);
-    } catch(FileNotFoundException e) {
-      System.out.println("ERROR: Indecent file path.");
-      e.printStackTrace();
-      throw e;
-    } catch (IOException e){
-      System.out.println("ERROR: Failed to get AuthorityListStream.");	
-      e.printStackTrace();
-      throw e;
+    }
+    catch (FileNotFoundException exception)
+    {
+      System.out.println("ERROR:Unacceptable file path");
+      exception.printStackTrace();
+      throw exception;
+    }
+    catch (IOException exception)
+    {
+      System.out.println("ERROR:Failed to get AuthorityListStream!");
+      exception.printStackTrace();
+      throw exception;
     }
   }
-  
   /**
    * Save all data
    * @throws IOException
    */
-  public void saveData() throws IOException{
-    try{
-      if(hasConversationModified){
+  public void saveData() throws IOException
+  {
+    try
+    {
+      if(hasConversationModified)
+      {
         saveConversationHeaders();
         LOG.info("Conversation data Saved!");
         hasConversationModified = false;
       }
-      
-      if(hasMessageModified){
+      if(hasMessageModified)
+      {
         saveMessages();
         LOG.info("Message data Saved!");
         hasMessageModified = false;
       }
-      
-      if(hasUserModified){
+      if(hasUserModified)
+      {
         saveUsers();
         LOG.info("User data Saved!");
         hasUserModified = false;
       }
-      
-      if(hasAuthorityListModified){
-    	saveAuthorityList();
-    	LOG.info("Authority data saved.");
-    	hasAuthorityListModified = false;
+      if(hasAuthorityListModified)
+      {
+        saveAuthorityList();
+        LOG.info("Authority data Saved!");
+        hasAuthorityListModified = false;
       }
-    } catch(IOException exception){
+    }
+    catch(IOException exception)
+    {
       System.out.println("ERROR:Failed to save data!");
       exception.printStackTrace();
       throw exception;
