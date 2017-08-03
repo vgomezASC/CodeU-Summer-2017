@@ -62,6 +62,6 @@ public interface BasicController {
   // Shuttles in an Interest Set updated from the client-end.
   void updateInterests(Uuid id, InterestSet intSet);
   
-  // Yuhang, I'll let you describe this one.
+  // Filters in valid ranking requests for execution.
   void authorityModificationRequest(ConversationUuid conversation, Uuid targetUser, Uuid fromUser ,String parameterString);
 }
