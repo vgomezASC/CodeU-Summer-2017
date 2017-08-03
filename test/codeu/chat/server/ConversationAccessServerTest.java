@@ -146,7 +146,7 @@ public final class ConversationAccessServerTest {
   @Test
   public void secureMemberByteTest(){
 	ConversationHeader conversation = spawnTestConversation();
-	final User member = controller.newUser("member");
+	final User member = spawnMember(conversation);
 	assertTrue(
 		"Check automatic membership for newcomers to chat",
 		model.isMember(conversation, member.id));

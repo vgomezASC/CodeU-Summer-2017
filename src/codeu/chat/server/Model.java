@@ -177,7 +177,7 @@ public final class Model implements AuthorityModel {
   public boolean isMember(ConversationUuid conversation,Uuid targetUser){
     StoreAccessor<Uuid, ConversationHeader> convos = this.conversationById();
     ConversationHeader chat = convos.first(conversation.root());
-    HashMap<Uuid, Byte> accessMap = this.getPermissionMap(conversation);
+    HashMap<Uuid, Byte> accessMap = this.getPermissionMap(chat);
     byte user = accessMap.get(targetUser);
     if ((user | USER_TYPE_BANNED) == USER_TYPE_BANNED)
       return false;
