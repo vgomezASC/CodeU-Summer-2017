@@ -15,15 +15,11 @@
 package codeu.chat.client.commandline;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Scanner; 
 import java.util.Stack;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.io.IOException;
 
 
 import codeu.chat.client.core.Context;
@@ -38,10 +34,6 @@ import codeu.chat.util.Sort;
 import codeu.chat.util.Time;
 import codeu.chat.util.Tokenizer;
 import codeu.chat.util.Uuid;
-
-import codeu.chat.common.ServerInfo;
-
-import codeu.chat.common.ServerInfo;
 
 public final class Chat {
 
@@ -417,6 +409,9 @@ public final class Chat {
         System.out.println("    List all messages in the current conversation.");
         System.out.println("  m-add <message>");
         System.out.println("    Add a new message to the current conversation as the current user.");
+        System.out.println("  m-auth <username> <authority>");
+        System.out.println("    Change user rank. o: Owner m: Member b: Banned");
+        System.out.println("    Only the creator and owners can do this!");
         System.out.println("  info");
         System.out.println("    Display all info about the current conversation.");
         System.out.println("  back");
@@ -425,7 +420,34 @@ public final class Chat {
         System.out.println("    Exit the program.");
       }
     });
-
+    panel.register("m-auth", new Panel.Command()
+    {
+      @Override
+      public void invoke(List<String> args) 
+      {
+        if (args.size() < 2) 
+        {
+      	  System.out.println("ERROR: Command doesn't follow the format. Please use 'help' for more information.");
+      	} 
+        else
+        {
+          String user = args.get(0);
+          String para = args.get(1);
+          if(findUser(user) == null)
+          {
+            System.out.println("ERROR: No such user.");
+          }
+          else if(!para.equals("o") && !para.equals("m") && !para.equals("b"))
+          {
+            System.out.println("ERROR: Parameter '" + para + "' is unacceptable! Please use 'help' for more information.");
+          }
+          else
+          {
+            conversation.changeAuthority(findUser(user).id, para);
+          }
+        }
+      }
+    });
     // M-LIST (list messages)
     //
     // Add a command to print all messages in the current conversation when the
@@ -477,7 +499,26 @@ public final class Chat {
       }
       
     });
-
+    
+    panel.register("m-auth", new Panel.Command(){
+      @Override
+      public void invoke(List<String> args){
+    	if (args.size() < 2){
+    	  System.out.println("ERROR: Command doesn't follow the format. Please use 'help' for more information.");
+    	} else {
+    	  String user = args.get(0);
+    	  String para = args.get(1);
+    	  if(findUser(user) == null){
+    		System.out.println("ERROR: No such user.");
+    	  } else if(!para.equals("o") && !para.equals("m") && !para.equals("b")){
+    		System.out.println("ERROR: Parameter '" + para + "' is unacceptable! Please use 'help' for more information.");
+    	  } else {
+    		conversation.changeAuthority(findUser(user).id, para);
+    	  }
+    	}
+      }
+    });
+      
     // INFO
     //
     // Add a command to print info about the current conversation when the user
@@ -574,7 +615,7 @@ public final class Chat {
       if (b.bookmark == null) {
         msg = conversation.firstMessage();
       } else {
-        msg = conversation.findMessageByUuid(b.bookmark.id).next();
+        msg = conversation.getMessage(b.bookmark.id).next();
       }
       
       String leading = "--- new from "+conversation.conversation.title+" ---";
@@ -758,7 +799,7 @@ public final class Chat {
           }
           if (!detected && b.first != null){
             ConversationContext conversation = findConversation(b.conversation.title);
-            MessageContext msg = conversation.findMessageByUuid(b.bookmark.id);
+            MessageContext msg = conversation.getMessage(b.bookmark.id);
             for (MessageContext message = msg.next();
                            message != null;
                            message = message.next()){

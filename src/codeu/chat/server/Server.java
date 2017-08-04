@@ -19,17 +19,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import codeu.chat.common.ConversationHeader;
+import codeu.chat.common.ConversationHeader.ConversationUuid;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.InterestSet;
-import codeu.chat.common.LinearUuidGenerator;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
@@ -37,7 +34,6 @@ import codeu.chat.common.Secret;
 import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
 import codeu.chat.server.LocalFile;
-import codeu.chat.common.ServerInfo;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
@@ -81,25 +77,67 @@ public final class Server {
     this.localFile = new LocalFile(new File(file.getPath()));//file path is given by user
     this.controller = new Controller(id, model,localFile);//Use the new constructor to create this new controller.
     this.relay = relay;
-
+    this.commands.put(NetworkCode.CONVERSATION_AUTHORITY_REQUEST, new Command()
+    {
+      @Override
+      public void onMessage(InputStream in, OutputStream out) throws IOException
+      {
+        final ConversationUuid conversation = new ConversationUuid(Uuid.SERIALIZER.read(in));
+        final Uuid targetUser = Uuid.SERIALIZER.read(in);
+        final Uuid fromUser = Uuid.SERIALIZER.read(in);
+        final String parameterString = Serializers.STRING.read(in);
+        if(fromUser.equals(targetUser))
+        {
+          Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
+        }
+        else if(!model.isMember(conversation, fromUser))
+        {
+           Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
+        }
+        else if(!model.isOwner(conversation, fromUser) && !model.isCreator(conversation, fromUser))
+        {
+          Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
+        }
+        else if(model.isOwner(conversation, fromUser) && parameterString.equals("o"))
+        {
+          Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
+        }
+        else if(model.isOwner(conversation, fromUser) && model.isOwner(conversation, targetUser))
+        {
+          Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
+        }
+        else if(model.isOwner(conversation, fromUser) && model.isCreator(conversation, targetUser))
+        {
+          Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
+        }
+        else
+        {
+          controller.authorityModificationRequest(conversation, targetUser, fromUser, parameterString);
+          
+          Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_AUTHORITY_RESPONSE);
+        }
+      }
+    });
     // New Message - A client wants to add a new message to the back end.
     this.commands.put(NetworkCode.NEW_MESSAGE_REQUEST, new Command() {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
 
         final Uuid author = Uuid.SERIALIZER.read(in);
-        final Uuid conversation = Uuid.SERIALIZER.read(in);
+        final ConversationUuid conversation = new ConversationUuid( Uuid.SERIALIZER.read(in));
         final String content = Serializers.STRING.read(in);
 
-        final Message message = controller.newMessage(author, conversation, content);
-
-        Serializers.INTEGER.write(out, NetworkCode.NEW_MESSAGE_RESPONSE);
-        Serializers.nullable(Message.SERIALIZER).write(out, message);
-
-        timeline.scheduleNow(createSendToRelayEvent(
-            author,
-            conversation,
-            message.id));
+        if(!model.isMember(conversation, author)){
+          Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
+        } else {
+          final Message message = controller.newMessage(author, conversation, content);
+          Serializers.INTEGER.write(out, NetworkCode.NEW_MESSAGE_RESPONSE);
+          Serializers.nullable(Message.SERIALIZER).write(out, message);
+          timeline.scheduleNow(createSendToRelayEvent(
+        	author,
+        	conversation,
+        	message.id));
+        }
       }
     });
       
@@ -172,14 +210,24 @@ public final class Server {
 
     // Get Messages By Id - A client wants to get a subset of the messages from the back end.
     this.commands.put(NetworkCode.GET_MESSAGES_BY_ID_REQUEST, new Command() {
+      boolean firstCall = true;
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
-
-        final Collection<Uuid> ids = Serializers.collection(Uuid.SERIALIZER).read(in);
-        final Collection<Message> messages = view.getMessages(ids);
-
-        Serializers.INTEGER.write(out, NetworkCode.GET_MESSAGES_BY_ID_RESPONSE);
-        Serializers.collection(Message.SERIALIZER).write(out, messages);
+    	final ConversationUuid conversation = new ConversationUuid(Uuid.SERIALIZER.read(in));
+    	final Uuid user = Uuid.SERIALIZER.read(in);
+      final Collection<Uuid> ids = Serializers.collection(Uuid.SERIALIZER).read(in);
+          if(firstCall && !model.isMember(conversation, user)){
+          Serializers.INTEGER.write(out, NetworkCode.CONVERSATION_ACCESS_DENIED);
+        } else {
+          firstCall = false;
+          final Collection<Message> messages = view.getMessages(conversation, user, ids);
+          if(messages.size() == 0)
+          {
+            firstCall = true;
+          }
+          Serializers.INTEGER.write(out, NetworkCode.GET_MESSAGES_BY_ID_RESPONSE);
+          Serializers.collection(Message.SERIALIZER).write(out, messages);
+        }     
       }
     });
 
@@ -316,7 +364,7 @@ public final class Server {
       // As the relay does not tell us who made the conversation - the first person who
       // has a message in the conversation will get ownership over this server's copy
       // of the conversation.
-      conversation = controller.newConversation(relayConversation.id(),
+      conversation = controller.newConversation((ConversationUuid) relayConversation.id(),
                                                 relayConversation.text(),
                                                 user.id,
                                                 relayConversation.time());

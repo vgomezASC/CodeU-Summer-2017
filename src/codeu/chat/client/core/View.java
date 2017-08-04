@@ -27,7 +27,6 @@ import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
-import codeu.chat.common.ServerInfo;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
@@ -120,17 +119,22 @@ final class View implements BasicView {
   }
 
   @Override
-  public Collection<Message> getMessages(Collection<Uuid> ids) {
+  public Collection<Message> getMessages(Uuid conversation, Uuid user, Collection<Uuid> ids) {
 
     final Collection<Message> messages = new ArrayList<>();
 
     try (final Connection connection = source.connect()) {
 
       Serializers.INTEGER.write(connection.out(), NetworkCode.GET_MESSAGES_BY_ID_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), conversation);
+      Uuid.SERIALIZER.write(connection.out(), user);
       Serializers.collection(Uuid.SERIALIZER).write(connection.out(), ids);
 
-      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_MESSAGES_BY_ID_RESPONSE) {
+      final int access = Serializers.INTEGER.read(connection.in());
+      if (access == NetworkCode.GET_MESSAGES_BY_ID_RESPONSE){
         messages.addAll(Serializers.collection(Message.SERIALIZER).read(connection.in()));
+      } else if(access == NetworkCode.CONVERSATION_ACCESS_DENIED){
+    	System.out.println("WARNING: Access denied.");
       } else {
         LOG.error("Response from server failed.");
       }

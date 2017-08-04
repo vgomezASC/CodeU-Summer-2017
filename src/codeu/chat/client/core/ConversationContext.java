@@ -24,8 +24,6 @@ import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.Message;
 import codeu.chat.common.User;
-import codeu.chat.util.Serializer;
-import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 
@@ -88,18 +86,11 @@ public final class ConversationContext {
   }
 
   public MessageContext getMessage(Uuid id) {
-    final Iterator<Message> messages = view.getMessages(Arrays.asList(id)).iterator();
+    final Iterator<Message> messages = view.getMessages(conversation.id, user.id, Arrays.asList(id)).iterator();
     return messages.hasNext() ? new MessageContext(messages.next(), view) : null;
   }
   
-  public MessageContext findMessageByUuid(Uuid id) {
-    for (MessageContext message = this.firstMessage();
-                        message != null;
-                        message = message.next()){
-      if (message.message.id.equals(id))
-        return message;
-    }
-    return null;
+  public void changeAuthority(Uuid targetUser, String authorityParameter){
+    controller.authorityModificationRequest(conversation.id, targetUser, user.id, authorityParameter);
   }
-  
 }
