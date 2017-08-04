@@ -15,7 +15,6 @@
 package codeu.chat.relay;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -25,7 +24,6 @@ import java.util.Queue;
 import codeu.chat.common.LinearUuidGenerator;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
-import codeu.chat.util.Logger;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;

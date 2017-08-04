@@ -6,11 +6,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
+
 import java.util.LinkedHashSet;
 
 import codeu.chat.common.ConversationHeader;
@@ -28,35 +25,42 @@ public class LocalFile
     public static final String MESSAGE_FILE_NAME = "/msgDat.sav";
     public static final String USER_FILE_NAME = "/usrDat.sav";
     public static final String CONVERSATION_FILE_NAME = "/cvrsDat.sav";
+    public static final String AUTHORITY_FILE_NAME = "/auth.sav";
 
     //Instance varibles for saving the current data of server.
     private final LinkedHashSet<User> users;
     private final LinkedHashSet<ConversationHeader> conversationHeaders;
     private final LinkedHashSet<Message> messages;
+    private final LinkedHashSet<AuthorityBuffer> authorityList;
 
     private final File file;
 
     private boolean hasUserModified = false;//It indicates if there is a new data should be handled.
     private boolean hasMessageModified = false;
     private boolean hasConversationModified = false;
+    private boolean hasAuthorityListModified = false;
 
     private final Serializer<Collection<Message>> localMessages = Serializers.collection(Message.SERIALIZER);
     private final Serializer<Collection<ConversationHeader>> localConversationHeaders = Serializers.collection(ConversationHeader.SERIALIZER);
     private final Serializer<Collection<User>> localUsers = Serializers.collection(User.SERIALIZER);
+    private final Serializer<Collection<AuthorityBuffer>> localAuthority = Serializers.collection(AuthorityBuffer.SERIALIZER);
 
     private final File userFile;
     private final File conversationFile;
     private final File messageFile;
+    private final File authorityFile;
     public LocalFile (File file)
     {
         this.file = file;
         users = new LinkedHashSet<>();
         conversationHeaders= new LinkedHashSet<>();
         messages= new LinkedHashSet<>();
+        authorityList = new LinkedHashSet<>();
 
         userFile = new File(file.getPath() + USER_FILE_NAME);
         conversationFile = new File(file.getPath() + CONVERSATION_FILE_NAME);
         messageFile = new File(file.getPath() + MESSAGE_FILE_NAME);
+        authorityFile = new File(file.getPath(), AUTHORITY_FILE_NAME);
         try
         {
             if(!userFile.exists())
@@ -71,6 +75,10 @@ public class LocalFile
             {
                 messageFile.createNewFile();
             }
+            if(!authorityFile.exists())
+            {
+                authorityFile.createNewFile();
+            }
         }
         catch(IOException exception)
         {
@@ -81,7 +89,8 @@ public class LocalFile
 
         try(FileInputStream userInputStream = new FileInputStream(userFile);
             FileInputStream conversationInputStream = new FileInputStream(conversationFile);
-            FileInputStream messageInputStream = new FileInputStream(messageFile);)
+            FileInputStream messageInputStream = new FileInputStream(messageFile);
+            FileInputStream authInputStream = new FileInputStream(authorityFile);)
         {
             if(userInputStream.available() > 0)
             {
@@ -109,6 +118,15 @@ public class LocalFile
                     messages.add(item);
                 }
             } 
+            
+            if(authInputStream.available() > 0)
+            {
+                Collection<AuthorityBuffer> authData = localAuthority.read(authInputStream);
+                for(AuthorityBuffer item : authData)
+                {
+                    authorityList.add(item);
+                }
+            }
         }
         catch (IOException exception)
         {
@@ -144,6 +162,11 @@ public class LocalFile
     public LinkedHashSet<Message> getMessages()
     {
         return new LinkedHashSet<Message>(messages);
+    }
+
+    public LinkedHashSet<AuthorityBuffer> getauthorityList()
+    {
+        return new LinkedHashSet<>(authorityList);
     }
     /**
      * Add a new user to the instance
@@ -187,6 +210,13 @@ public class LocalFile
        messages.add(message);//If repetition happens, hasMofified should be false still.
        hasMessageModified = true;
     }
+
+    public void addAuthority(Uuid conversation, Uuid user, byte authorityByte)
+    {
+        AuthorityBuffer buffer = new AuthorityBuffer(conversation, user, authorityByte);
+        authorityList.add(buffer);
+        hasAuthorityListModified = true;
+    }
     /**
      * Get current path.
      * 
@@ -215,7 +245,7 @@ public class LocalFile
     }
     catch(IOException exception)
     {
-      System.out.println("ERROR:Failed to get ConversationHeaderStream!");
+      System.out.println("ERROR:Failed to get UserStream!");
       exception.printStackTrace();
       throw exception;
     }
@@ -261,7 +291,26 @@ public class LocalFile
     }
     catch (IOException exception)
     {
-      System.out.println("ERROR:Failed to get ConversationHeaderStream!");
+      System.out.println("ERROR:Failed to get MessageStream!");
+      exception.printStackTrace();
+      throw exception;
+    }
+  }
+ private void saveAuthorityList() throws IOException
+  {
+    try(FileOutputStream authorityStream = new FileOutputStream(authorityFile))
+    {
+      localAuthority.write(authorityStream, authorityList);
+    }
+    catch (FileNotFoundException exception)
+    {
+      System.out.println("ERROR:Unacceptable file path");
+      exception.printStackTrace();
+      throw exception;
+    }
+    catch (IOException exception)
+    {
+      System.out.println("ERROR:Failed to get AuthorityListStream!");
       exception.printStackTrace();
       throw exception;
     }
@@ -291,6 +340,12 @@ public class LocalFile
         saveUsers();
         LOG.info("User data Saved!");
         hasUserModified = false;
+      }
+      if(hasAuthorityListModified)
+      {
+        saveAuthorityList();
+        LOG.info("Authority data Saved!");
+        hasAuthorityListModified = false;
       }
     }
     catch(IOException exception)
